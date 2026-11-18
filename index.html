@@ -38,7 +38,7 @@
       font-size: 0.95rem;
       font-weight: 700;
       color: #0369a1;
-      background: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.85);
       padding: 5px 18px;
       border-radius: 20px;
       border: 1.5px solid #7dd3fc;
@@ -47,47 +47,60 @@
     #board-wrapper {
       position: relative;
       background: #0f172a;
-      padding: 14px;
+      padding: 12px;
       border-radius: 20px;
       box-shadow: 0 14px 32px rgba(2, 132, 199, 0.3);
       border: 5px solid #ffffff;
     }
 
+    /* 7 Rows x 6 Columns matching your exact layout */
     #grid {
       display: grid;
-      grid-template-columns: repeat(5, 52px);
-      grid-template-rows: repeat(5, 52px);
-      gap: 5px;
+      grid-template-columns: repeat(6, 44px);
+      grid-template-rows: repeat(7, 44px);
+      gap: 4px;
     }
 
     .cell {
-      width: 52px;
-      height: 52px;
+      width: 44px;
+      height: 44px;
       background: #1e293b;
-      border-radius: 8px;
+      border-radius: 7px;
       transition: transform 0.25s ease, opacity 0.3s ease, background 0.15s;
     }
 
-    /* Glossy blue shades */
-    .block-style-1 {
-      background: linear-gradient(145deg, #38bdf8, #0284c7);
-      box-shadow: inset 0 3px 4px rgba(255, 255, 255, 0.55), inset 0 -3px 4px rgba(0, 0, 0, 0.25);
+    /* Exact 8 block colors from your image with glossy Block Blast shading */
+    .color-brown {
+      background: linear-gradient(145deg, #bfa284, #9f8163);
+      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.45), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
     }
-    .block-style-2 {
-      background: linear-gradient(145deg, #60a5fa, #2563eb);
-      box-shadow: inset 0 3px 4px rgba(255, 255, 255, 0.55), inset 0 -3px 4px rgba(0, 0, 0, 0.25);
+    .color-lilac {
+      background: linear-gradient(145deg, #e5b3f7, #c68ce0);
+      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.5), inset 0 -3px 3px rgba(0, 0, 0, 0.22);
     }
-    .block-style-3 {
-      background: linear-gradient(145deg, #22d3ee, #0891b2);
-      box-shadow: inset 0 3px 4px rgba(255, 255, 255, 0.55), inset 0 -3px 4px rgba(0, 0, 0, 0.25);
+    .color-red {
+      background: linear-gradient(145deg, #ff6464, #e63939);
+      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.45), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
     }
-    .block-style-4 {
-      background: linear-gradient(145deg, #818cf8, #4f46e5);
-      box-shadow: inset 0 3px 4px rgba(255, 255, 255, 0.55), inset 0 -3px 4px rgba(0, 0, 0, 0.25);
+    .color-orange {
+      background: linear-gradient(145deg, #ff9d57, #ee7324);
+      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.45), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
     }
-    .block-style-5 {
-      background: linear-gradient(145deg, #7dd3fc, #0369a1);
-      box-shadow: inset 0 3px 4px rgba(255, 255, 255, 0.55), inset 0 -3px 4px rgba(0, 0, 0, 0.25);
+    .color-blue {
+      background: linear-gradient(145deg, #1664c4, #003c96);
+      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.4), inset 0 -3px 3px rgba(0, 0, 0, 0.3);
+    }
+    .color-green {
+      background: linear-gradient(145deg, #91e66c, #64c43f);
+      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.45), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
+    }
+    .color-pink {
+      background: linear-gradient(145deg, #ff7bc8, #ea46a6);
+      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.45), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
+    }
+    .color-yellow {
+      background: linear-gradient(145deg, #ffe566, #f0c929);
+      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.55), inset 0 -3px 3px rgba(0, 0, 0, 0.2);
     }
 
     .cell.preview {
@@ -97,13 +110,13 @@
     }
 
     .cell.hint-glow {
-      background: rgba(56, 189, 248, 0.25) !important;
+      background: rgba(56, 189, 248, 0.28) !important;
       border: 2px dotted #38bdf8;
-      animation: pulse 1s infinite alternate;
+      animation: pulse 0.9s infinite alternate;
     }
 
     @keyframes pulse {
-      from { opacity: 0.5; }
+      from { opacity: 0.45; }
       to { opacity: 1; }
     }
 
@@ -115,16 +128,16 @@
 
     /* Tray with custom shapes */
     #tray {
-      margin-top: 20px;
-      background: rgba(255, 255, 255, 0.88);
-      padding: 14px 20px;
+      margin-top: 18px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 12px 18px;
       border-radius: 18px;
       border: 3px solid #7dd3fc;
       display: flex;
       align-items: center;
       justify-content: space-around;
-      gap: 20px;
-      min-height: 115px;
+      gap: 16px;
+      min-height: 125px;
       min-width: 340px;
       box-shadow: 0 8px 20px rgba(2, 132, 199, 0.15);
     }
@@ -133,8 +146,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 85px;
-      min-height: 85px;
+      min-width: 88px;
+      min-height: 95px;
     }
 
     .piece {
@@ -154,9 +167,9 @@
     }
 
     .mini-cell {
-      width: 24px;
-      height: 24px;
-      border-radius: 5px;
+      width: 21px;
+      height: 21px;
+      border-radius: 4px;
       pointer-events: none;
     }
 
@@ -168,16 +181,16 @@
     #drag-clone {
       position: fixed;
       display: none;
-      gap: 5px;
+      gap: 4px;
       pointer-events: none;
       z-index: 50;
       filter: drop-shadow(0 12px 20px rgba(15, 23, 42, 0.45));
     }
 
     .clone-cell {
-      width: 52px;
-      height: 52px;
-      border-radius: 8px;
+      width: 44px;
+      height: 44px;
+      border-radius: 7px;
     }
 
     .clone-cell.empty {
@@ -320,7 +333,7 @@
 <body>
 
   <h1>💙 Fill the Board! 💙</h1>
-  <div class="progress-bar">Blocks Filled: <span id="filled-count">0</span> / 25</div>
+  <div class="progress-bar">Blocks Filled: <span id="filled-count">0</span> / 42</div>
 
   <div id="board-wrapper">
     <div id="grid"></div>
@@ -330,7 +343,7 @@
   <div id="drag-clone"></div>
 
   <div class="controls-row">
-    <span class="hint-text" id="hint-text">Drag the custom shapes onto the board!</span>
+    <span class="hint-text" id="hint-text">Drag the shapes onto the board!</span>
     <button class="small-btn" onclick="showHint()">💡 Hint</button>
     <button class="small-btn" onclick="initGame()">↻ Reset</button>
   </div>
@@ -371,69 +384,107 @@
     floatingHb.textContent = FLOATING_TEXT;
     document.getElementById("sweet-message").textContent = FINAL_SWEET_MESSAGE;
 
-    const SIZE = 5;
-    const CELL_SIZE = 52;
-    const CELL_GAP = 5;
+    const ROWS = 7;
+    const COLS = 6;
+    const CELL_SIZE = 44;
+    const CELL_GAP = 4;
 
-    // 5 Custom Non-Standard Shapes that tile the 5x5 board (5 + 6 + 5 + 6 + 3 = 25 squares!)
-    // Each piece also stores its exact solution coordinate (solR, solC) for the Hint button
+    // Exact 8 shapes & colors from your reference image (totaling all 42 squares of the 7x6 board!)
     const WAVES = [
-      // Wave 1 (First 3 custom pieces)
+      // Wave 1 (3 shapes)
       [
         {
-          id: "u-cup",
-          style: "block-style-1",
+          id: "brown-piece",
+          style: "color-brown",
           solR: 0,
           solC: 0,
           matrix: [
-            [1, 0, 1],
-            [1, 1, 1]
-          ]
-        },
-        {
-          id: "tuck-hook",
-          style: "block-style-2",
-          solR: 0,
-          solC: 1,
-          matrix: [
-            [0, 1, 1],
-            [1, 0, 1],
+            [1, 1, 0],
+            [0, 1, 0],
             [0, 1, 1]
           ]
         },
         {
-          id: "plus-cross",
-          style: "block-style-3",
-          solR: 2,
-          solC: 0,
+          id: "lilac-piece",
+          style: "color-lilac",
+          solR: 0,
+          solC: 2,
           matrix: [
-            [0, 1, 0],
+            [1, 1, 1],
+            [1, 0, 0]
+          ]
+        },
+        {
+          id: "red-piece",
+          style: "color-red",
+          solR: 0,
+          solC: 3,
+          matrix: [
+            [0, 0, 1],
             [1, 1, 1],
             [0, 1, 0]
           ]
         }
       ],
-      // Wave 2 (Final 2 custom pieces to complete all 25 squares)
+      // Wave 2 (3 shapes)
       [
         {
-          id: "zigzag-wing",
-          style: "block-style-4",
-          solR: 2,
-          solC: 2,
+          id: "orange-piece",
+          style: "color-orange",
+          solR: 1,
+          solC: 0,
           matrix: [
-            [1, 0, 0],
-            [1, 1, 1],
-            [0, 1, 0]
+            [1, 0],
+            [1, 0],
+            [1, 1]
           ]
         },
         {
-          id: "corner-step",
-          style: "block-style-5",
-          solR: 3,
+          id: "blue-piece",
+          style: "color-blue",
+          solR: 2,
+          solC: 2,
+          matrix: [
+            [0, 1, 0],
+            [1, 1, 1]
+          ]
+        },
+        {
+          id: "green-piece",
+          style: "color-green",
+          solR: 4,
+          solC: 0,
+          matrix: [
+            [1, 1, 1],
+            [1, 1, 0],
+            [1, 1, 0]
+          ]
+        }
+      ],
+      // Wave 3 (Final 2 shapes to complete all 42 squares!)
+      [
+        {
+          id: "pink-piece",
+          style: "color-pink",
+          solR: 4,
+          solC: 2,
+          matrix: [
+            [0, 1, 1],
+            [1, 1, 1],
+            [1, 0, 0]
+          ]
+        },
+        {
+          id: "yellow-piece",
+          style: "color-yellow",
+          solR: 2,
           solC: 3,
           matrix: [
-            [0, 1],
-            [1, 1]
+            [0, 0, 1],
+            [0, 0, 1],
+            [0, 0, 1],
+            [0, 0, 1],
+            [1, 1, 1]
           ]
         }
       ]
@@ -449,7 +500,7 @@
     let isFinished = false;
 
     function initGame() {
-      board = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
       currentWaveIndex = 0;
       placedInWave = 0;
       totalFilled = 0;
@@ -459,7 +510,7 @@
       filledCountEl.textContent = "0";
       floatingHb.classList.remove("show");
       finalModal.classList.remove("active");
-      hintText.textContent = "Drag the custom shapes onto the board!";
+      hintText.textContent = "Drag the shapes onto the board!";
       stopFireworks();
 
       renderBoard();
@@ -468,8 +519,8 @@
 
     function renderBoard() {
       gridEl.innerHTML = "";
-      for (let r = 0; r < SIZE; r++) {
-        for (let c = 0; c < SIZE; c++) {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
           const cell = document.createElement("div");
           cell.className = "cell";
           cell.dataset.row = r;
@@ -495,7 +546,7 @@
         const piece = document.createElement("div");
         piece.className = "piece";
         piece.dataset.shapeId = shape.id;
-        piece.style.gridTemplateColumns = `repeat(${shape.matrix[0].length}, 24px)`;
+        piece.style.gridTemplateColumns = `repeat(${shape.matrix[0].length}, 21px)`;
 
         shape.matrix.forEach((row) => {
           row.forEach((val) => {
@@ -597,7 +648,7 @@
           if (shape.matrix[r][c] === 1) {
             const br = startR + r;
             const bc = startC + c;
-            if (br < 0 || br >= SIZE || bc < 0 || bc >= SIZE) return false;
+            if (br < 0 || br >= ROWS || bc < 0 || bc >= COLS) return false;
             if (board[br][bc] !== null) return false;
           }
         }
@@ -670,7 +721,7 @@
         placedInWave++;
         renderBoard();
 
-        if (totalFilled >= 25) {
+        if (totalFilled >= 42) {
           triggerAllClearCelebration();
         } else if (placedInWave === WAVES[currentWaveIndex].length) {
           currentWaveIndex++;
@@ -692,14 +743,8 @@
         document.querySelectorAll(".cell").forEach((cell, idx) => {
           setTimeout(() => {
             cell.classList.add("clearing");
-            cell.classList.remove(
-              "block-style-1",
-              "block-style-2",
-              "block-style-3",
-              "block-style-4",
-              "block-style-5"
-            );
-          }, Math.floor(idx / SIZE) * 45);
+            cell.className = "cell clearing";
+          }, Math.floor(idx / COLS) * 40);
         });
       }, 250);
 
