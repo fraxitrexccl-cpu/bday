@@ -1,572 +1,685 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Happy Birthday Block Blast!</title>
-    <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        user-select: none;
-        -webkit-user-select: none;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Happy Birthday Block Blast!</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
 
-      body {
-        background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        color: #1e3a8a;
-        overflow: hidden;
-      }
+    body {
+      background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: #1e3a8a;
+      overflow: hidden;
+      touch-action: none;
+    }
 
-      h1 {
-        margin-bottom: 14px;
-        font-size: 2rem;
-        color: #0284c7;
-        text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
-      }
+    h1 {
+      margin-bottom: 12px;
+      font-size: 2rem;
+      color: #0284c7;
+      text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+    }
 
-      #board-wrapper {
-        position: relative;
-        background: #0f172a;
-        padding: 12px;
-        border-radius: 18px;
-        box-shadow: 0 14px 32px rgba(2, 132, 199, 0.3);
-        border: 5px solid #ffffff;
-      }
+    #board-wrapper {
+      position: relative;
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 18px;
+      box-shadow: 0 14px 32px rgba(2, 132, 199, 0.3);
+      border: 5px solid #ffffff;
+    }
 
-      #grid {
-        display: grid;
-        grid-template-columns: repeat(8, 38px);
-        grid-template-rows: repeat(8, 38px);
-        gap: 4px;
-      }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(8, 38px);
+      grid-template-rows: repeat(8, 38px);
+      gap: 4px;
+    }
 
-      .cell {
-        width: 38px;
-        height: 38px;
-        background: #1e293b;
-        border-radius: 6px;
-        transition:
-          transform 0.25s ease,
-          opacity 0.3s ease,
-          background 0.15s;
-      }
+    .cell {
+      width: 38px;
+      height: 38px;
+      background: #1e293b;
+      border-radius: 6px;
+      transition: transform 0.25s ease, opacity 0.3s ease, background 0.12s;
+    }
 
-      .cell.filled {
-        background: linear-gradient(145deg, #38bdf8, #0284c7);
-        box-shadow:
-          inset 0 2px 3px rgba(255, 255, 255, 0.5),
-          0 2px 4px rgba(0, 0, 0, 0.3);
-      }
+    /* Beveled glossy blue blocks like Block Blast */
+    .block-style-1 {
+      background: linear-gradient(145deg, #38bdf8, #0284c7);
+      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.55), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
+    }
+    .block-style-2 {
+      background: linear-gradient(145deg, #60a5fa, #2563eb);
+      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.55), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
+    }
+    .block-style-3 {
+      background: linear-gradient(145deg, #22d3ee, #0891b2);
+      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.55), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
+    }
 
-      .cell.target-slot {
-        background: #1e293b;
-        border: 1.5px dashed #38bdf8;
-        cursor: pointer;
-      }
+    .cell.preview {
+      background: rgba(125, 211, 252, 0.45) !important;
+      border: 2px dashed #7dd3fc;
+      box-shadow: none;
+    }
 
-      .cell.highlight {
-        background: #7dd3fc !important;
-        border: none;
-        box-shadow: 0 0 14px #38bdf8;
-      }
+    .cell.clearing {
+      transform: scale(0) rotate(25deg);
+      opacity: 0;
+      background: #fde047 !important;
+    }
 
-      .cell.clearing {
-        transform: scale(0) rotate(25deg);
-        opacity: 0;
-        background: #fde047 !important;
-      }
+    /* Tray with 3 custom shapes */
+    #tray {
+      margin-top: 20px;
+      background: rgba(255, 255, 255, 0.85);
+      padding: 14px 20px;
+      border-radius: 18px;
+      border: 3px solid #7dd3fc;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      gap: 22px;
+      min-height: 115px;
+      min-width: 365px;
+      box-shadow: 0 8px 20px rgba(2, 132, 199, 0.15);
+    }
 
-      /* Piece Dock */
-      #dock {
-        margin-top: 22px;
-        background: rgba(255, 255, 255, 0.85);
-        padding: 14px 20px;
-        border-radius: 16px;
-        border: 2px solid #7dd3fc;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 72px;
-      }
+    .piece-slot {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 85px;
+      min-height: 85px;
+    }
 
-      #piece {
-        display: flex;
-        gap: 4px;
-        cursor: grab;
-        touch-action: none;
-      }
+    .piece {
+      display: grid;
+      gap: 3px;
+      cursor: grab;
+      touch-action: none;
+      transition: transform 0.15s ease;
+    }
 
-      #piece:active {
-        cursor: grabbing;
-      }
+    .piece:hover {
+      transform: scale(1.06);
+    }
 
-      #piece.ghosted {
-        opacity: 0.25;
-      }
+    .piece.dragging-source {
+      opacity: 0.2;
+    }
 
-      .piece-block {
-        width: 36px;
-        height: 36px;
-        border-radius: 6px;
-        background: linear-gradient(145deg, #0ea5e9, #0369a1);
-        box-shadow:
-          inset 0 2px 3px rgba(255, 255, 255, 0.5),
-          0 4px 8px rgba(2, 132, 199, 0.35);
-        pointer-events: none;
-      }
+    .mini-cell {
+      width: 24px;
+      height: 24px;
+      border-radius: 5px;
+      pointer-events: none;
+    }
 
-      /* Floating clone that follows cursor/finger */
-      #drag-clone {
-        position: fixed;
-        display: none;
-        gap: 4px;
-        pointer-events: none;
-        z-index: 50;
-        transform: translate(-50%, -50%) scale(1.06);
-        filter: drop-shadow(0 10px 18px rgba(2, 132, 199, 0.45));
-      }
+    .mini-cell.empty {
+      background: transparent;
+    }
 
-      .hint {
-        margin-top: 12px;
-        font-size: 0.95rem;
-        color: #0369a1;
-        font-weight: 600;
-      }
+    /* Full-size floating clone when dragging */
+    #drag-clone {
+      position: fixed;
+      display: none;
+      gap: 4px;
+      pointer-events: none;
+      z-index: 50;
+      filter: drop-shadow(0 12px 20px rgba(15, 23, 42, 0.45));
+    }
 
-      /* Floating "Happy Birthday!" Text */
-      #floating-hb {
-        position: fixed;
-        top: 42%;
-        left: 50%;
-        transform: translate(-50%, -50%) scale(0.4);
-        font-size: 2.5rem;
-        font-weight: 900;
-        color: #ffffff;
-        background: linear-gradient(135deg, #0284c7, #38bdf8);
-        padding: 14px 32px;
-        border-radius: 40px;
-        border: 4px solid #ffffff;
-        box-shadow: 0 12px 30px rgba(2, 132, 199, 0.5);
-        opacity: 0;
-        pointer-events: none;
-        z-index: 20;
-        white-space: nowrap;
-        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      }
+    .clone-cell {
+      width: 38px;
+      height: 38px;
+      border-radius: 6px;
+    }
 
-      #floating-hb.show {
-        opacity: 1;
-        transform: translate(-50%, -85%) scale(1);
-      }
+    .clone-cell.empty {
+      background: transparent;
+    }
 
-      /* Fireworks Canvas */
-      #fireworksCanvas {
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100vh;
-        pointer-events: none;
-        z-index: 15;
-      }
+    .hint {
+      margin-top: 12px;
+      font-size: 0.95rem;
+      color: #0369a1;
+      font-weight: 600;
+    }
 
-      /* Final Sweet Pop-Up Modal */
-      #final-modal {
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.55);
-        backdrop-filter: blur(4px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.5s ease;
-        z-index: 30;
-      }
+    /* Floating "Happy Birthday!" Text */
+    #floating-hb {
+      position: fixed;
+      top: 42%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.4);
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #ffffff;
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      padding: 14px 32px;
+      border-radius: 40px;
+      border: 4px solid #ffffff;
+      box-shadow: 0 12px 30px rgba(2, 132, 199, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 20;
+      white-space: nowrap;
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
 
-      #final-modal.active {
-        opacity: 1;
-        pointer-events: auto;
-      }
+    #floating-hb.show {
+      opacity: 1;
+      transform: translate(-50%, -85%) scale(1);
+    }
 
-      .card {
-        background: #ffffff;
-        padding: 35px 30px;
-        border-radius: 24px;
-        max-width: 400px;
-        width: 90%;
-        text-align: center;
-        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
-        border: 4px solid #7dd3fc;
-        transform: translateY(25px);
-        transition: transform 0.5s ease;
-      }
+    /* Fireworks Canvas */
+    #fireworksCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 15;
+    }
 
-      #final-modal.active .card {
-        transform: translateY(0);
-      }
+    /* Final Sweet Pop-Up Modal */
+    #final-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      z-index: 30;
+    }
 
-      .card h2 {
-        color: #0284c7;
-        font-size: 1.8rem;
-        margin-bottom: 12px;
-      }
+    #final-modal.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
 
-      .card p {
-        font-size: 1.05rem;
-        line-height: 1.6;
-        color: #334155;
-        margin-bottom: 24px;
-      }
+    .card {
+      background: #ffffff;
+      padding: 35px 30px;
+      border-radius: 24px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
+      border: 4px solid #7dd3fc;
+      transform: translateY(25px);
+      transition: transform 0.5s ease;
+    }
 
-      button {
-        background: #0ea5e9;
-        color: white;
-        border: none;
-        padding: 12px 28px;
-        font-size: 1rem;
-        font-weight: bold;
-        border-radius: 25px;
-        cursor: pointer;
-        transition:
-          background 0.2s,
-          transform 0.1s;
-      }
+    #final-modal.active .card {
+      transform: translateY(0);
+    }
 
-      button:hover {
-        background: #0284c7;
-        transform: scale(1.05);
-      }
-    </style>
-  </head>
-  <body>
-    <h1>💙 Clear the Blocks! 💙</h1>
+    .card h2 {
+      color: #0284c7;
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
 
-    <div id="board-wrapper">
-      <div id="grid"></div>
+    .card p {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #334155;
+      margin-bottom: 24px;
+    }
+
+    button {
+      background: #0ea5e9;
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover {
+      background: #0284c7;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>💙 Clear the Blocks! 💙</h1>
+
+  <div id="board-wrapper">
+    <div id="grid"></div>
+  </div>
+
+  <div id="tray"></div>
+  <div id="drag-clone"></div>
+
+  <p class="hint" id="hint-text">Drag the 3 shapes onto the board to clear it!</p>
+
+  <!-- Floating Happy Birthday Text -->
+  <div id="floating-hb">Happy Birthday! 🎉</div>
+
+  <!-- Fireworks Layer -->
+  <canvas id="fireworksCanvas"></canvas>
+
+  <!-- Final Sweet Message Pop-Up -->
+  <div id="final-modal">
+    <div class="card">
+      <div style="font-size: 3rem; margin-bottom: 10px;">💙🎂🎆</div>
+      <h2>Happy Birthday!</h2>
+      <p id="sweet-message"></p>
+      <button onclick="resetGame()">Play Again</button>
     </div>
+  </div>
 
-    <div id="dock">
-      <div id="piece">
-        <div class="piece-block"></div>
-        <div class="piece-block"></div>
-        <div class="piece-block"></div>
-        <div class="piece-block"></div>
-        <div class="piece-block"></div>
-        <div class="piece-block"></div>
-        <div class="piece-block"></div>
-        <div class="piece-block"></div>
-      </div>
-    </div>
+  <script>
+    // ==========================================
+    // ✏️ CUSTOMIZE YOUR MESSAGES HERE
+    // ==========================================
+    const FLOATING_TEXT = "Happy Birthday! 🎉";
+    const FINAL_SWEET_MESSAGE = 
+      "Wishing you the sweetest birthday filled with endless laughter, love, and all your favorite things. Thank you for always being such an amazing person in my life. Here's to another wonderful year ahead! 💙";
+    // ==========================================
 
-    <!-- Floating drag clone -->
-    <div id="drag-clone">
-      <div class="piece-block"></div>
-      <div class="piece-block"></div>
-      <div class="piece-block"></div>
-      <div class="piece-block"></div>
-      <div class="piece-block"></div>
-      <div class="piece-block"></div>
-      <div class="piece-block"></div>
-      <div class="piece-block"></div>
-    </div>
+    const gridEl = document.getElementById("grid");
+    const trayEl = document.getElementById("tray");
+    const dragClone = document.getElementById("drag-clone");
+    const floatingHb = document.getElementById("floating-hb");
+    const finalModal = document.getElementById("final-modal");
+    const hintText = document.getElementById("hint-text");
 
-    <p class="hint" id="hint-text">
-      Drag (or tap) the block into the empty row!
-    </p>
+    floatingHb.textContent = FLOATING_TEXT;
+    document.getElementById("sweet-message").textContent = FINAL_SWEET_MESSAGE;
 
-    <!-- Floating Happy Birthday Text -->
-    <div id="floating-hb">Happy Birthday! 🎉</div>
+    const ROWS = 8;
+    const COLS = 8;
+    const CELL_SIZE = 38;
+    const CELL_GAP = 4;
 
-    <!-- Fireworks Layer -->
-    <canvas id="fireworksCanvas"></canvas>
+    // 3 Fun Custom Shapes (Non-standard!)
+    // Shape 0: Plus / Cross (+)
+    // Shape 1: Cute Mini Heart / U-Cup
+    // Shape 2: Diagonal Steps
+    const SHAPES = [
+      {
+        id: 0,
+        style: "block-style-1",
+        matrix: [
+          [0, 1, 0],
+          [1, 1, 1],
+          [0, 1, 0]
+        ]
+      },
+      {
+        id: 1,
+        style: "block-style-2",
+        matrix: [
+          [1, 0, 1],
+          [1, 1, 1],
+          [0, 1, 0]
+        ]
+      },
+      {
+        id: 2,
+        style: "block-style-3",
+        matrix: [
+          [1, 0, 0],
+          [1, 1, 0],
+          [0, 1, 1]
+        ]
+      }
+    ];
 
-    <!-- Final Sweet Message Pop-Up -->
-    <div id="final-modal">
-      <div class="card">
-        <div style="font-size: 3rem; margin-bottom: 10px">💙🎂🎆</div>
-        <h2>Happy Birthday!</h2>
-        <p id="sweet-message"></p>
-        <button onclick="resetGame()">Play Again</button>
-      </div>
-    </div>
+    // Pre-filled board with exact carved-out pockets for the 3 shapes so she can complete the whole board in 1 round!
+    // 0 = empty space, 1/2/3 = pre-filled blue blocks
+    const INITIAL_BOARD = [
+      [1, 2, 1, 3, 2, 1, 2, 3],
+      [2, 0, 3, 1, 0, 1, 0, 2], // Pocket for Plus (+) at r=1..3, c=0..2 & Heart at r=1..3, c=4..6
+      [0, 0, 0, 2, 0, 0, 0, 1],
+      [3, 0, 1, 3, 2, 0, 1, 3],
+      [1, 2, 3, 1, 2, 3, 1, 2],
+      [2, 3, 0, 1, 2, 3, 2, 1], // Pocket for Diagonal Steps at r=5..7, c=2..4
+      [3, 1, 0, 0, 2, 1, 3, 2],
+      [1, 2, 3, 0, 0, 2, 1, 3]
+    ];
 
-    <script>
-      // ==========================================
-      // ✏️ CUSTOMIZE YOUR MESSAGES HERE
-      // ==========================================
-      const FLOATING_TEXT = "Happy Birthday! 🎉";
-      const FINAL_SWEET_MESSAGE =
-        "Wishing you the sweetest birthday filled with endless laughter, love, and all your favorite things. Thank you for always being such an amazing person in my life. Here's to another wonderful year ahead! 💙";
-      // ==========================================
+    let board = [];
+    let placedCount = 0;
+    let activeShape = null;
+    let activePieceEl = null;
+    let currentPreviewCells = [];
+    let isFinished = false;
 
-      const gridEl = document.getElementById("grid");
-      const boardWrapper = document.getElementById("board-wrapper");
-      const pieceEl = document.getElementById("piece");
-      const dragClone = document.getElementById("drag-clone");
-      const floatingHb = document.getElementById("floating-hb");
-      const finalModal = document.getElementById("final-modal");
-      const hintText = document.getElementById("hint-text");
+    function initGame() {
+      board = INITIAL_BOARD.map(row => [...row]);
+      placedCount = 0;
+      activeShape = null;
+      isFinished = false;
+      floatingHb.classList.remove("show");
+      finalModal.classList.remove("active");
+      hintText.textContent = "Drag the 3 shapes into the empty spots on the board!";
+      stopFireworks();
+      renderBoard();
+      renderTray();
+    }
 
-      floatingHb.textContent = FLOATING_TEXT;
-      document.getElementById("sweet-message").textContent =
-        FINAL_SWEET_MESSAGE;
-
-      const ROWS = 8;
-      const COLS = 8;
-      const TARGET_ROW = 4;
-      let isCleared = false;
-      let isDragging = false;
-      let startX = 0;
-      let startY = 0;
-
-      function buildBoard() {
-        gridEl.innerHTML = "";
-        isCleared = false;
-        isDragging = false;
-        pieceEl.style.visibility = "visible";
-        pieceEl.classList.remove("ghosted");
-        dragClone.style.display = "none";
-
-        hintText.textContent = "Drag (or tap) the block into the empty row!";
-        floatingHb.classList.remove("show");
-        finalModal.classList.remove("active");
-        stopFireworks();
-
-        for (let r = 0; r < ROWS; r++) {
-          for (let c = 0; c < COLS; c++) {
-            const cell = document.createElement("div");
-            cell.className = "cell";
-            cell.dataset.row = r;
-            cell.dataset.col = c;
-
-            if (r !== TARGET_ROW) {
-              cell.classList.add("filled");
-            } else {
-              cell.classList.add("target-slot");
-              cell.addEventListener("click", completeMove);
-            }
-
-            gridEl.appendChild(cell);
+    function renderBoard() {
+      gridEl.innerHTML = "";
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          if (board[r][c] > 0) {
+            cell.classList.add(`block-style-${board[r][c]}`);
           }
+          gridEl.appendChild(cell);
         }
       }
+    }
 
-      function highlightTargetRow(active) {
-        if (isCleared) return;
-        document
-          .querySelectorAll(`.cell[data-row="${TARGET_ROW}"]`)
-          .forEach((cell) => {
-            cell.classList.toggle("highlight", active);
+    function renderTray() {
+      trayEl.innerHTML = "";
+      SHAPES.forEach((shape) => {
+        const slot = document.createElement("div");
+        slot.className = "piece-slot";
+
+        const piece = document.createElement("div");
+        piece.className = "piece";
+        piece.style.gridTemplateColumns = `repeat(${shape.matrix[0].length}, 24px)`;
+
+        shape.matrix.forEach((row) => {
+          row.forEach((val) => {
+            const mc = document.createElement("div");
+            mc.className = val ? `mini-cell ${shape.style}` : "mini-cell empty";
+            piece.appendChild(mc);
           });
-      }
-
-      function isOverBoard(x, y) {
-        const rect = boardWrapper.getBoundingClientRect();
-        return (
-          x >= rect.left - 40 &&
-          x <= rect.right + 40 &&
-          y >= rect.top - 40 &&
-          y <= rect.bottom + 40
-        );
-      }
-
-      pieceEl.addEventListener("pointerdown", (e) => {
-        if (isCleared) return;
-        e.preventDefault();
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-
-        pieceEl.setPointerCapture(e.pointerId);
-        pieceEl.classList.add("ghosted");
-
-        dragClone.style.display = "flex";
-        dragClone.style.left = `${e.clientX}px`;
-        dragClone.style.top = `${e.clientY}px`;
-      });
-
-      pieceEl.addEventListener("pointermove", (e) => {
-        if (!isDragging || isCleared) return;
-        dragClone.style.left = `${e.clientX}px`;
-        dragClone.style.top = `${e.clientY}px`;
-        highlightTargetRow(isOverBoard(e.clientX, e.clientY));
-      });
-
-      pieceEl.addEventListener("pointerup", (e) => {
-        if (!isDragging) return;
-        isDragging = false;
-        pieceEl.releasePointerCapture(e.pointerId);
-        pieceEl.classList.remove("ghosted");
-        dragClone.style.display = "none";
-        highlightTargetRow(false);
-
-        const movedDistance = Math.hypot(
-          e.clientX - startX,
-          e.clientY - startY,
-        );
-
-        // Works whether she drags it onto the board OR simply taps/clicks it!
-        if (movedDistance < 10 || isOverBoard(e.clientX, e.clientY)) {
-          completeMove();
-        }
-      });
-
-      pieceEl.addEventListener("pointercancel", () => {
-        isDragging = false;
-        pieceEl.classList.remove("ghosted");
-        dragClone.style.display = "none";
-        highlightTargetRow(false);
-      });
-
-      function completeMove() {
-        if (isCleared) return;
-        isCleared = true;
-
-        // 1. Place the piece into the empty row
-        pieceEl.style.visibility = "hidden";
-        dragClone.style.display = "none";
-        hintText.textContent = "Amazing!! ✨";
-
-        document
-          .querySelectorAll(`.cell[data-row="${TARGET_ROW}"]`)
-          .forEach((cell) => {
-            cell.classList.remove("highlight", "target-slot");
-            cell.classList.add("filled");
-          });
-
-        // 2. Clear ALL blocks on the board after a brief beat
-        setTimeout(() => {
-          document.querySelectorAll(".cell").forEach((cell, idx) => {
-            setTimeout(
-              () => {
-                cell.classList.add("clearing");
-                cell.classList.remove("filled");
-              },
-              Math.floor(idx / 8) * 35,
-            );
-          });
-        }, 250);
-
-        // 3. Show Floating "Happy Birthday!" text first
-        setTimeout(() => {
-          floatingHb.classList.add("show");
-        }, 650);
-
-        // 4. Launch Fireworks right after
-        setTimeout(() => {
-          startFireworks();
-        }, 1300);
-
-        // 5. Show the Final Sweet Pop-Up Card
-        setTimeout(() => {
-          floatingHb.classList.remove("show");
-          finalModal.classList.add("active");
-        }, 3400);
-      }
-
-      // ==========================================
-      // 🎆 FIREWORKS ANIMATION ENGINE
-      // ==========================================
-      const fwCanvas = document.getElementById("fireworksCanvas");
-      const fwCtx = fwCanvas.getContext("2d");
-      let particles = [];
-      let fireworksActive = false;
-      let fwInterval;
-
-      function resizeCanvas() {
-        fwCanvas.width = window.innerWidth;
-        fwCanvas.height = window.innerHeight;
-      }
-      window.addEventListener("resize", resizeCanvas);
-      resizeCanvas();
-
-      function createBurst(x, y) {
-        const colors = [
-          "#38bdf8",
-          "#fde047",
-          "#ffffff",
-          "#60a5fa",
-          "#f472b6",
-          "#34d399",
-        ];
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        for (let i = 0; i < 55; i++) {
-          const angle = (Math.PI * 2 * i) / 55;
-          const speed = Math.random() * 5 + 2;
-          particles.push({
-            x,
-            y,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            alpha: 1,
-            color,
-          });
-        }
-      }
-
-      function animateFireworks() {
-        if (!fireworksActive && particles.length === 0) return;
-        fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
-
-        particles.forEach((p, index) => {
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vy += 0.06;
-          p.alpha -= 0.016;
-
-          if (p.alpha <= 0) {
-            particles.splice(index, 1);
-          } else {
-            fwCtx.save();
-            fwCtx.globalAlpha = p.alpha;
-            fwCtx.fillStyle = p.color;
-            fwCtx.beginPath();
-            fwCtx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
-            fwCtx.fill();
-            fwCtx.restore();
-          }
         });
 
-        requestAnimationFrame(animateFireworks);
+        piece.addEventListener("pointerdown", (e) => startDrag(e, shape, piece));
+        slot.appendChild(piece);
+        trayEl.appendChild(slot);
+      });
+    }
+
+    function startDrag(e, shape, pieceEl) {
+      if (isFinished || pieceEl.dataset.used === "true") return;
+      e.preventDefault();
+
+      activeShape = shape;
+      activePieceEl = pieceEl;
+      pieceEl.classList.add("dragging-source");
+
+      // Build full-size clone
+      dragClone.innerHTML = "";
+      dragClone.style.display = "grid";
+      dragClone.style.gridTemplateColumns = `repeat(${shape.matrix[0].length}, ${CELL_SIZE}px)`;
+
+      shape.matrix.forEach((row) => {
+        row.forEach((val) => {
+          const cc = document.createElement("div");
+          cc.className = val ? `clone-cell ${shape.style}` : "clone-cell empty";
+          dragClone.appendChild(cc);
+        });
+      });
+
+      updateDragPosition(e.clientX, e.clientY);
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+    }
+
+    function updateDragPosition(clientX, clientY) {
+      if (!activeShape) return;
+      const rows = activeShape.matrix.length;
+      const cols = activeShape.matrix[0].length;
+      const cloneW = cols * CELL_SIZE + (cols - 1) * CELL_GAP;
+      const cloneH = rows * CELL_SIZE + (rows - 1) * CELL_GAP;
+
+      // Offset slightly above finger/cursor so she can see where it lands
+      const topLeftX = clientX - cloneW / 2;
+      const topLeftY = clientY - cloneH / 2 - 25;
+
+      dragClone.style.left = `${topLeftX}px`;
+      dragClone.style.top = `${topLeftY}px`;
+
+      updateBoardPreview(topLeftX, topLeftY);
+    }
+
+    function getTargetGridPos(topLeftX, topLeftY) {
+      const gridRect = gridEl.getBoundingClientRect();
+      const step = CELL_SIZE + CELL_GAP;
+      const col = Math.round((topLeftX - gridRect.left) / step);
+      const row = Math.round((topLeftY - gridRect.top) / step);
+      return { row, col };
+    }
+
+    function canPlace(shape, startR, startC) {
+      for (let r = 0; r < shape.matrix.length; r++) {
+        for (let c = 0; c < shape.matrix[0].length; c++) {
+          if (shape.matrix[r][c] === 1) {
+            const br = startR + r;
+            const bc = startC + c;
+            if (br < 0 || br >= ROWS || bc < 0 || bc >= COLS) return false;
+            if (board[br][bc] !== 0) return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    function clearPreview() {
+      currentPreviewCells.forEach(cell => cell.classList.remove("preview"));
+      currentPreviewCells = [];
+    }
+
+    function updateBoardPreview(topLeftX, topLeftY) {
+      clearPreview();
+      if (!activeShape) return;
+
+      const { row, col } = getTargetGridPos(topLeftX, topLeftY);
+      if (canPlace(activeShape, row, col)) {
+        for (let r = 0; r < activeShape.matrix.length; r++) {
+          for (let c = 0; c < activeShape.matrix[0].length; c++) {
+            if (activeShape.matrix[r][c] === 1) {
+              const cell = document.querySelector(`.cell[data-row="${row + r}"][data-col="${col + c}"]`);
+              if (cell) {
+                cell.classList.add("preview");
+                currentPreviewCells.push(cell);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    function onPointerMove(e) {
+      updateDragPosition(e.clientX, e.clientY);
+    }
+
+    function onPointerUp(e) {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+
+      if (!activeShape) return;
+
+      const rows = activeShape.matrix.length;
+      const cols = activeShape.matrix[0].length;
+      const cloneW = cols * CELL_SIZE + (cols - 1) * CELL_GAP;
+      const cloneH = rows * CELL_SIZE + (rows - 1) * CELL_GAP;
+      const topLeftX = e.clientX - cloneW / 2;
+      const topLeftY = e.clientY - cloneH / 2 - 25;
+
+      const { row, col } = getTargetGridPos(topLeftX, topLeftY);
+      clearPreview();
+      dragClone.style.display = "none";
+
+      if (canPlace(activeShape, row, col)) {
+        // Lock shape onto board
+        const styleNum = activeShape.id + 1;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (activeShape.matrix[r][c] === 1) {
+              board[row + r][col + c] = styleNum;
+            }
+          }
+        }
+
+        activePieceEl.style.visibility = "hidden";
+        activePieceEl.dataset.used = "true";
+        placedCount++;
+        renderBoard();
+
+        // Check if she placed all 3 shapes (completing the entire board in 1 round!)
+        if (placedCount === SHAPES.length) {
+          triggerAllClearCelebration();
+        }
+      } else {
+        activePieceEl.classList.remove("dragging-source");
       }
 
-      function startFireworks() {
-        fireworksActive = true;
-        createBurst(fwCanvas.width * 0.3, fwCanvas.height * 0.35);
-        createBurst(fwCanvas.width * 0.7, fwCanvas.height * 0.35);
-        animateFireworks();
+      activeShape = null;
+      activePieceEl = null;
+    }
 
-        fwInterval = setInterval(() => {
-          if (!fireworksActive) return;
-          const rx =
-            Math.random() * (fwCanvas.width * 0.7) + fwCanvas.width * 0.15;
-          const ry =
-            Math.random() * (fwCanvas.height * 0.45) + fwCanvas.height * 0.12;
-          createBurst(rx, ry);
-        }, 650);
+    function triggerAllClearCelebration() {
+      isFinished = true;
+      hintText.textContent = "ALL CLEAR!! ✨";
+
+      // 1. Blast all blocks off the board in a wave
+      setTimeout(() => {
+        document.querySelectorAll(".cell").forEach((cell, idx) => {
+          setTimeout(() => {
+            cell.classList.add("clearing");
+            cell.classList.remove("block-style-1", "block-style-2", "block-style-3");
+          }, Math.floor(idx / 8) * 35);
+        });
+      }, 250);
+
+      // 2. Floating "Happy Birthday!" text first
+      setTimeout(() => {
+        floatingHb.classList.add("show");
+      }, 700);
+
+      // 3. Fireworks right after
+      setTimeout(() => {
+        startFireworks();
+      }, 1400);
+
+      // 4. Final Sweet Pop-Up Card
+      setTimeout(() => {
+        floatingHb.classList.remove("show");
+        finalModal.classList.add("active");
+      }, 3500);
+    }
+
+    // ==========================================
+    // 🎆 FIREWORKS ANIMATION ENGINE
+    // ==========================================
+    const fwCanvas = document.getElementById("fireworksCanvas");
+    const fwCtx = fwCanvas.getContext("2d");
+    let particles = [];
+    let fireworksActive = false;
+    let fwInterval;
+
+    function resizeCanvas() {
+      fwCanvas.width = window.innerWidth;
+      fwCanvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function createBurst(x, y) {
+      const colors = ["#38bdf8", "#fde047", "#ffffff", "#60a5fa", "#f472b6", "#34d399"];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      for (let i = 0; i < 55; i++) {
+        const angle = (Math.PI * 2 * i) / 55;
+        const speed = Math.random() * 5 + 2;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          alpha: 1,
+          color
+        });
       }
+    }
 
-      function stopFireworks() {
-        fireworksActive = false;
-        clearInterval(fwInterval);
-        particles = [];
-        fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
-      }
+    function animateFireworks() {
+      if (!fireworksActive && particles.length === 0) return;
+      fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
 
-      function resetGame() {
-        buildBoard();
-      }
+      particles.forEach((p, index) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.06;
+        p.alpha -= 0.016;
 
-      buildBoard();
-    </script>
-  </body>
+        if (p.alpha <= 0) {
+          particles.splice(index, 1);
+        } else {
+          fwCtx.save();
+          fwCtx.globalAlpha = p.alpha;
+          fwCtx.fillStyle = p.color;
+          fwCtx.beginPath();
+          fwCtx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
+          fwCtx.fill();
+          fwCtx.restore();
+        }
+      });
+
+      requestAnimationFrame(animateFireworks);
+    }
+
+    function startFireworks() {
+      fireworksActive = true;
+      createBurst(fwCanvas.width * 0.3, fwCanvas.height * 0.35);
+      createBurst(fwCanvas.width * 0.7, fwCanvas.height * 0.35);
+      animateFireworks();
+
+      fwInterval = setInterval(() => {
+        if (!fireworksActive) return;
+        const rx = Math.random() * (fwCanvas.width * 0.7) + fwCanvas.width * 0.15;
+        const ry = Math.random() * (fwCanvas.height * 0.45) + fwCanvas.height * 0.12;
+        createBurst(rx, ry);
+      }, 650);
+    }
+
+    function stopFireworks() {
+      fireworksActive = false;
+      clearInterval(fwInterval);
+      particles = [];
+      fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+    }
+
+    function resetGame() {
+      initGame();
+    }
+
+    initGame();
+  </script>
+</body>
 </html>
