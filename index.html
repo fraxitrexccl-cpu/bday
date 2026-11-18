@@ -27,10 +27,21 @@
     }
 
     h1 {
-      margin-bottom: 12px;
-      font-size: 2rem;
+      margin-bottom: 6px;
+      font-size: 1.9rem;
       color: #0284c7;
       text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+    }
+
+    .progress-bar {
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0369a1;
+      background: rgba(255, 255, 255, 0.75);
+      padding: 5px 16px;
+      border-radius: 20px;
+      border: 1.5px solid #7dd3fc;
     }
 
     #board-wrapper {
@@ -57,7 +68,7 @@
       transition: transform 0.25s ease, opacity 0.3s ease, background 0.12s;
     }
 
-    /* Beveled glossy blue blocks like Block Blast */
+    /* Glossy blue shades */
     .block-style-1 {
       background: linear-gradient(145deg, #38bdf8, #0284c7);
       box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.55), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
@@ -68,6 +79,10 @@
     }
     .block-style-3 {
       background: linear-gradient(145deg, #22d3ee, #0891b2);
+      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.55), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
+    }
+    .block-style-4 {
+      background: linear-gradient(145deg, #818cf8, #4f46e5);
       box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.55), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
     }
 
@@ -83,17 +98,17 @@
       background: #fde047 !important;
     }
 
-    /* Tray with 3 custom shapes */
+    /* Tray with 3 custom shapes per wave */
     #tray {
-      margin-top: 20px;
-      background: rgba(255, 255, 255, 0.85);
-      padding: 14px 20px;
+      margin-top: 18px;
+      background: rgba(255, 255, 255, 0.88);
+      padding: 12px 18px;
       border-radius: 18px;
       border: 3px solid #7dd3fc;
       display: flex;
       align-items: center;
       justify-content: space-around;
-      gap: 22px;
+      gap: 18px;
       min-height: 115px;
       min-width: 365px;
       box-shadow: 0 8px 20px rgba(2, 132, 199, 0.15);
@@ -103,8 +118,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 85px;
-      min-height: 85px;
+      min-width: 90px;
+      min-height: 90px;
     }
 
     .piece {
@@ -116,7 +131,7 @@
     }
 
     .piece:hover {
-      transform: scale(1.06);
+      transform: scale(1.07);
     }
 
     .piece.dragging-source {
@@ -124,8 +139,8 @@
     }
 
     .mini-cell {
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       border-radius: 5px;
       pointer-events: none;
     }
@@ -154,11 +169,32 @@
       background: transparent;
     }
 
+    .hint-row {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     .hint {
-      margin-top: 12px;
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       color: #0369a1;
       font-weight: 600;
+    }
+
+    .reset-mini {
+      background: #ffffff;
+      color: #0284c7;
+      border: 1.5px solid #7dd3fc;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-radius: 14px;
+      cursor: pointer;
+    }
+
+    .reset-mini:hover {
+      background: #e0f2fe;
     }
 
     /* Floating "Happy Birthday!" Text */
@@ -247,7 +283,7 @@
       margin-bottom: 24px;
     }
 
-    button {
+    button.main-btn {
       background: #0ea5e9;
       color: white;
       border: none;
@@ -259,7 +295,7 @@
       transition: background 0.2s, transform 0.1s;
     }
 
-    button:hover {
+    button.main-btn:hover {
       background: #0284c7;
       transform: scale(1.05);
     }
@@ -267,7 +303,8 @@
 </head>
 <body>
 
-  <h1>💙 Clear the Blocks! 💙</h1>
+  <h1>💙 Fill the Board! 💙</h1>
+  <div class="progress-bar">Blocks Filled: <span id="filled-count">0</span> / 64</div>
 
   <div id="board-wrapper">
     <div id="grid"></div>
@@ -276,7 +313,10 @@
   <div id="tray"></div>
   <div id="drag-clone"></div>
 
-  <p class="hint" id="hint-text">Drag the 3 shapes onto the board to clear it!</p>
+  <div class="hint-row">
+    <span class="hint" id="hint-text">Drag all custom shapes to fill the board!</span>
+    <button class="reset-mini" onclick="initGame()">Restart</button>
+  </div>
 
   <!-- Floating Happy Birthday Text -->
   <div id="floating-hb">Happy Birthday! 🎉</div>
@@ -290,7 +330,7 @@
       <div style="font-size: 3rem; margin-bottom: 10px;">💙🎂🎆</div>
       <h2>Happy Birthday!</h2>
       <p id="sweet-message"></p>
-      <button onclick="resetGame()">Play Again</button>
+      <button class="main-btn" onclick="initGame()">Play Again</button>
     </div>
   </div>
 
@@ -309,6 +349,7 @@
     const floatingHb = document.getElementById("floating-hb");
     const finalModal = document.getElementById("final-modal");
     const hintText = document.getElementById("hint-text");
+    const filledCountEl = document.getElementById("filled-count");
 
     floatingHb.textContent = FLOATING_TEXT;
     document.getElementById("sweet-message").textContent = FINAL_SWEET_MESSAGE;
@@ -318,71 +359,141 @@
     const CELL_SIZE = 38;
     const CELL_GAP = 4;
 
-    // 3 Fun Custom Shapes (Non-standard!)
-    // Shape 0: Plus / Cross (+)
-    // Shape 1: Cute Mini Heart / U-Cup
-    // Shape 2: Diagonal Steps
-    const SHAPES = [
-      {
-        id: 0,
-        style: "block-style-1",
-        matrix: [
-          [0, 1, 0],
-          [1, 1, 1],
-          [0, 1, 0]
-        ]
-      },
-      {
-        id: 1,
-        style: "block-style-2",
-        matrix: [
-          [1, 0, 1],
-          [1, 1, 1],
-          [0, 1, 0]
-        ]
-      },
-      {
-        id: 2,
-        style: "block-style-3",
-        matrix: [
-          [1, 0, 0],
-          [1, 1, 0],
-          [0, 1, 1]
-        ]
-      }
-    ];
-
-    // Pre-filled board with exact carved-out pockets for the 3 shapes so she can complete the whole board in 1 round!
-    // 0 = empty space, 1/2/3 = pre-filled blue blocks
-    const INITIAL_BOARD = [
-      [1, 2, 1, 3, 2, 1, 2, 3],
-      [2, 0, 3, 1, 0, 1, 0, 2], // Pocket for Plus (+) at r=1..3, c=0..2 & Heart at r=1..3, c=4..6
-      [0, 0, 0, 2, 0, 0, 0, 1],
-      [3, 0, 1, 3, 2, 0, 1, 3],
-      [1, 2, 3, 1, 2, 3, 1, 2],
-      [2, 3, 0, 1, 2, 3, 2, 1], // Pocket for Diagonal Steps at r=5..7, c=2..4
-      [3, 1, 0, 0, 2, 1, 3, 2],
-      [1, 2, 3, 0, 0, 2, 1, 3]
+    // 12 Custom Non-Standard Puzzle Shapes that mathematically tile the entire 8x8 board (64 cells total)!
+    // Dealt in 4 waves of 3 shapes so she fills every single square herself!
+    const WAVES = [
+      // Wave 1 (Top & Left interlocked custom shapes)
+      [
+        {
+          style: "block-style-1", // U-Cup / Crown
+          matrix: [
+            [1, 0, 1],
+            [1, 1, 1]
+          ]
+        },
+        {
+          style: "block-style-2", // Plus (+) Cross
+          matrix: [
+            [0, 1, 0],
+            [1, 1, 1],
+            [0, 1, 0]
+          ]
+        },
+        {
+          style: "block-style-3", // Staircase Zigzag
+          matrix: [
+            [1, 1, 0],
+            [0, 1, 1],
+            [0, 0, 1]
+          ]
+        }
+      ],
+      // Wave 2 (Middle interlocked custom shapes)
+      [
+        {
+          style: "block-style-4", // Claw / Hook
+          matrix: [
+            [1, 1, 1],
+            [1, 0, 1]
+          ]
+        },
+        {
+          style: "block-style-1", // Skewed S-Wing
+          matrix: [
+            [0, 1, 1],
+            [1, 1, 0],
+            [1, 0, 0]
+          ]
+        },
+        {
+          style: "block-style-2", // Diagonal Twin + Corner
+          matrix: [
+            [1, 0, 0],
+            [1, 1, 1],
+            [0, 1, 0]
+          ]
+        }
+      ],
+      // Wave 3 (Lower-mid custom shapes)
+      [
+        {
+          style: "block-style-3", // Asymmetric T-Hook
+          matrix: [
+            [0, 1, 0],
+            [1, 1, 1],
+            [1, 0, 0]
+          ]
+        },
+        {
+          style: "block-style-4", // Bridge Arch
+          matrix: [
+            [1, 1, 1],
+            [1, 0, 0],
+            [1, 0, 0]
+          ]
+        },
+        {
+          style: "block-style-1", // Step-L
+          matrix: [
+            [0, 0, 1],
+            [0, 1, 1],
+            [1, 1, 0]
+          ]
+        }
+      ],
+      // Wave 4 (Final 3 pieces to complete all 64 blocks!)
+      [
+        {
+          style: "block-style-2", // Mini Heart / V-Cup
+          matrix: [
+            [1, 0, 1],
+            [1, 1, 1],
+            [0, 1, 0]
+          ]
+        },
+        {
+          style: "block-style-3", // Fork / Trident
+          matrix: [
+            [1, 0, 1],
+            [1, 1, 1]
+          ]
+        },
+        {
+          style: "block-style-4", // Z-Bolt
+          matrix: [
+            [1, 1, 0],
+            [0, 1, 1]
+          ]
+        }
+      ]
     ];
 
     let board = [];
-    let placedCount = 0;
+    let currentWaveIndex = 0;
+    let placedInWave = 0;
+    let totalFilled = 0;
     let activeShape = null;
     let activePieceEl = null;
     let currentPreviewCells = [];
     let isFinished = false;
 
     function initGame() {
-      board = INITIAL_BOARD.map(row => [...row]);
-      placedCount = 0;
+      // Board starts 100% EMPTY so she places every piece herself!
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+      currentWaveIndex = 0;
+      placedInWave = 0;
+      totalFilled = 0;
       activeShape = null;
       isFinished = false;
+
+      filledCountEl.textContent = "0";
       floatingHb.classList.remove("show");
       finalModal.classList.remove("active");
-      hintText.textContent = "Drag the 3 shapes into the empty spots on the board!";
+      hintText.textContent = "Drag all custom shapes to fill the empty board!";
       stopFireworks();
+
       renderBoard();
-      renderTray();
+      loadWave(0);
     }
 
     function renderBoard() {
@@ -393,23 +504,27 @@
           cell.className = "cell";
           cell.dataset.row = r;
           cell.dataset.col = c;
-          if (board[r][c] > 0) {
-            cell.classList.add(`block-style-${board[r][c]}`);
+          if (board[r][c]) {
+            cell.classList.add(board[r][c]);
           }
           gridEl.appendChild(cell);
         }
       }
     }
 
-    function renderTray() {
+    function loadWave(waveIdx) {
       trayEl.innerHTML = "";
-      SHAPES.forEach((shape) => {
+      placedInWave = 0;
+      const shapes = WAVES[waveIdx];
+      if (!shapes) return;
+
+      shapes.forEach((shape) => {
         const slot = document.createElement("div");
         slot.className = "piece-slot";
 
         const piece = document.createElement("div");
         piece.className = "piece";
-        piece.style.gridTemplateColumns = `repeat(${shape.matrix[0].length}, 24px)`;
+        piece.style.gridTemplateColumns = `repeat(${shape.matrix[0].length}, 22px)`;
 
         shape.matrix.forEach((row) => {
           row.forEach((val) => {
@@ -433,7 +548,6 @@
       activePieceEl = pieceEl;
       pieceEl.classList.add("dragging-source");
 
-      // Build full-size clone
       dragClone.innerHTML = "";
       dragClone.style.display = "grid";
       dragClone.style.gridTemplateColumns = `repeat(${shape.matrix[0].length}, ${CELL_SIZE}px)`;
@@ -458,9 +572,8 @@
       const cloneW = cols * CELL_SIZE + (cols - 1) * CELL_GAP;
       const cloneH = rows * CELL_SIZE + (rows - 1) * CELL_GAP;
 
-      // Offset slightly above finger/cursor so she can see where it lands
       const topLeftX = clientX - cloneW / 2;
-      const topLeftY = clientY - cloneH / 2 - 25;
+      const topLeftY = clientY - cloneH / 2 - 28;
 
       dragClone.style.left = `${topLeftX}px`;
       dragClone.style.top = `${topLeftY}px`;
@@ -483,7 +596,7 @@
             const br = startR + r;
             const bc = startC + c;
             if (br < 0 || br >= ROWS || bc < 0 || bc >= COLS) return false;
-            if (board[br][bc] !== 0) return false;
+            if (board[br][bc] !== null) return false;
           }
         }
       }
@@ -530,31 +643,38 @@
       const cloneW = cols * CELL_SIZE + (cols - 1) * CELL_GAP;
       const cloneH = rows * CELL_SIZE + (rows - 1) * CELL_GAP;
       const topLeftX = e.clientX - cloneW / 2;
-      const topLeftY = e.clientY - cloneH / 2 - 25;
+      const topLeftY = e.clientY - cloneH / 2 - 28;
 
       const { row, col } = getTargetGridPos(topLeftX, topLeftY);
       clearPreview();
       dragClone.style.display = "none";
 
       if (canPlace(activeShape, row, col)) {
-        // Lock shape onto board
-        const styleNum = activeShape.id + 1;
+        let added = 0;
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
             if (activeShape.matrix[r][c] === 1) {
-              board[row + r][col + c] = styleNum;
+              board[row + r][col + c] = activeShape.style;
+              added++;
             }
           }
         }
 
+        totalFilled += added;
+        filledCountEl.textContent = totalFilled;
+
         activePieceEl.style.visibility = "hidden";
         activePieceEl.dataset.used = "true";
-        placedCount++;
+        placedInWave++;
         renderBoard();
 
-        // Check if she placed all 3 shapes (completing the entire board in 1 round!)
-        if (placedCount === SHAPES.length) {
+        // Check if the entire 8x8 board is filled (64 blocks)
+        if (totalFilled >= 64 || (currentWaveIndex === WAVES.length - 1 && placedInWave === 3)) {
           triggerAllClearCelebration();
+        } else if (placedInWave === 3) {
+          // Deal the next 3 custom shapes!
+          currentWaveIndex++;
+          setTimeout(() => loadWave(currentWaveIndex), 200);
         }
       } else {
         activePieceEl.classList.remove("dragging-source");
@@ -566,14 +686,14 @@
 
     function triggerAllClearCelebration() {
       isFinished = true;
-      hintText.textContent = "ALL CLEAR!! ✨";
+      hintText.textContent = "FULL BOARD CLEAR!! ✨";
 
       // 1. Blast all blocks off the board in a wave
       setTimeout(() => {
         document.querySelectorAll(".cell").forEach((cell, idx) => {
           setTimeout(() => {
             cell.classList.add("clearing");
-            cell.classList.remove("block-style-1", "block-style-2", "block-style-3");
+            cell.classList.remove("block-style-1", "block-style-2", "block-style-3", "block-style-4");
           }, Math.floor(idx / 8) * 35);
         });
       }, 250);
@@ -673,10 +793,6 @@
       clearInterval(fwInterval);
       particles = [];
       fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
-    }
-
-    function resetGame() {
-      initGame();
     }
 
     initGame();
