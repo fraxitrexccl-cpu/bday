@@ -11,6 +11,7 @@
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       user-select: none;
+      -webkit-user-select: none;
     }
 
     body {
@@ -22,6 +23,7 @@
       min-height: 100vh;
       color: #1e3a8a;
       overflow: hidden;
+      touch-action: none;
     }
 
     h1 {
@@ -52,7 +54,7 @@
       height: 38px;
       background: #1e293b;
       border-radius: 6px;
-      transition: transform 0.25s ease, opacity 0.3s ease, background 0.2s;
+      transition: transform 0.25s ease, opacity 0.3s ease, background 0.15s;
     }
 
     .cell.filled {
@@ -62,7 +64,7 @@
 
     .cell.highlight {
       background: #7dd3fc !important;
-      box-shadow: 0 0 12px #38bdf8;
+      box-shadow: 0 0 14px #38bdf8;
     }
 
     .cell.clearing {
@@ -74,35 +76,35 @@
     /* Draggable Piece Dock */
     #dock {
       margin-top: 22px;
-      background: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.75);
       padding: 14px 22px;
       border-radius: 16px;
       border: 2px solid #7dd3fc;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      min-height: 76px;
       justify-content: center;
+      min-height: 76px;
+      min-width: 360px;
     }
 
     #piece {
       display: flex;
       gap: 4px;
       cursor: grab;
+      z-index: 12;
       transition: transform 0.15s ease;
     }
 
-    #piece:hover {
-      transform: scale(1.04);
-    }
-
-    #piece:active {
+    #piece.dragging {
+      position: fixed;
       cursor: grabbing;
+      transform: scale(1.08);
+      pointer-events: none;
     }
 
     .piece-block {
-      width: 34px;
-      height: 34px;
+      width: 36px;
+      height: 36px;
       border-radius: 6px;
       background: linear-gradient(145deg, #0ea5e9, #0369a1);
       box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.5), 0 4px 8px rgba(2, 132, 199, 0.35);
@@ -110,9 +112,9 @@
 
     .hint {
       margin-top: 10px;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       color: #0369a1;
-      font-weight: 500;
+      font-weight: 600;
     }
 
     /* Floating "Happy Birthday!" Text */
@@ -228,7 +230,7 @@
   </div>
 
   <div id="dock">
-    <div id="piece" draggable="true" title="Drag me into the empty row!">
+    <div id="piece">
       <div class="piece-block"></div>
       <div class="piece-block"></div>
       <div class="piece-block"></div>
@@ -240,7 +242,7 @@
     </div>
   </div>
 
-  <p class="hint" id="hint-text">Drag (or click) the block into the empty row!</p>
+  <p class="hint" id="hint-text">Drag (or tap) the block into the empty row!</p>
 
   <!-- Floating Happy Birthday Text -->
   <div id="floating-hb">Happy Birthday! 🎉</div>
@@ -268,6 +270,7 @@
     // ==========================================
 
     const gridEl = document.getElementById("grid");
+    const boardWrapper = document.getElementById("board-wrapper");
     const pieceEl = document.getElementById("piece");
     const floatingHb = document.getElementById("floating-hb");
     const finalModal = document.getElementById("final-modal");
@@ -280,12 +283,19 @@
     const COLS = 8;
     const TARGET_ROW = 4; // The single empty row she needs to fill
     let isCleared = false;
+    let isDragging = false;
+    let dragMoved = false;
 
     function buildBoard() {
       gridEl.innerHTML = "";
       isCleared = false;
+      isDragging = false;
+      pieceEl.classList.remove("dragging");
+      pieceEl.style.left = "";
+      pieceEl.style.top = "";
       pieceEl.style.visibility = "visible";
-      hintText.textContent = "Drag (or click) the block into the empty row!";
+
+      hintText.textContent = "Drag (or tap) the block into the empty row!";
       floatingHb.classList.remove("show");
       finalModal.classList.remove("active");
       stopFireworks();
@@ -300,7 +310,157 @@
           if (r !== TARGET_ROW) {
             cell.classList.add("filled");
           } else {
-            // Allow drag-and-drop or direct click on the empty row
-            cell.addEventListener("dragover", (e) => {
-              e.preventDefault();
-              highlight
+            cell.addEventListener("click", () => completeMove());
+          }
+
+          gridEl.appendChild(cell);
+        }
+      }
+    }
+
+    function highlightTargetRow(active) {
+      if (isCleared) return;
+      document.querySelectorAll(`.cell[data-row="${TARGET_ROW}"]`).forEach((cell) => {
+        cell.classList.toggle("highlight", active);
+      });
+    }
+
+    function isOverBoard(clientX, clientY) {
+      const rect = boardWrapper.getBoundingClientRect();
+      return (
+        clientX >= rect.left - 30 &&
+        clientX <= rect.right + 30 &&
+        clientY >= rect.top - 30 &&
+        clientY <= rect.bottom + 30
+      );
+    }
+
+    // Smooth Pointer Dragging (Works on Mouse + Touchscreens)
+    pieceEl.addEventListener("pointerdown", (e) => {
+      if (isCleared) return;
+      isDragging = true;
+      dragMoved = false;
+      pieceEl.classList.add("dragging");
+      movePieceTo(e.clientX, e.clientY);
+    });
+
+    window.addEventListener("pointermove", (e) => {
+      if (!isDragging || isCleared) return;
+      dragMoved = true;
+      movePieceTo(e.clientX, e.clientY);
+      highlightTargetRow(isOverBoard(e.clientX, e.clientY));
+    });
+
+    window.addEventListener("pointerup", (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      pieceEl.classList.remove("dragging");
+      pieceEl.style.left = "";
+      pieceEl.style.top = "";
+      highlightTargetRow(false);
+
+      // Snap into place if dropped anywhere over the board OR if simply tapped/clicked!
+      if (!dragMoved || isOverBoard(e.clientX, e.clientY)) {
+        completeMove();
+      }
+    });
+
+    function movePieceTo(clientX, clientY) {
+      const rect = pieceEl.getBoundingClientRect();
+      pieceEl.style.left = `${clientX - rect.width / 2}px`;
+      pieceEl.style.top = `${clientY - rect.height / 2}px`;
+    }
+
+    function completeMove() {
+      if (isCleared) return;
+      isCleared = true;
+
+      // 1. Place the piece into the empty row
+      pieceEl.style.visibility = "hidden";
+      hintText.textContent = "Amazing!! ✨";
+      document.querySelectorAll(`.cell[data-row="${TARGET_ROW}"]`).forEach((cell) => {
+        cell.classList.remove("highlight");
+        cell.classList.add("filled");
+      });
+
+      // 2. Clear ALL blocks on the board after a brief beat
+      setTimeout(() => {
+        document.querySelectorAll(".cell").forEach((cell, idx) => {
+          setTimeout(() => {
+            cell.classList.add("clearing");
+            cell.classList.remove("filled");
+          }, Math.floor(idx / 8) * 35);
+        });
+      }, 250);
+
+      // 3. Show Floating "Happy Birthday!" text first
+      setTimeout(() => {
+        floatingHb.classList.add("show");
+      }, 650);
+
+      // 4. Launch Fireworks right after
+      setTimeout(() => {
+        startFireworks();
+      }, 1300);
+
+      // 5. Show the Final Sweet Pop-Up Card
+      setTimeout(() => {
+        floatingHb.classList.remove("show");
+        finalModal.classList.add("active");
+      }, 3400);
+    }
+
+    // ==========================================
+    // 🎆 FIREWORKS ANIMATION ENGINE
+    // ==========================================
+    const fwCanvas = document.getElementById("fireworksCanvas");
+    const fwCtx = fwCanvas.getContext("2d");
+    let particles = [];
+    let fireworksActive = false;
+    let fwInterval;
+
+    function resizeCanvas() {
+      fwCanvas.width = window.innerWidth;
+      fwCanvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function createBurst(x, y) {
+      const colors = ["#38bdf8", "#fde047", "#ffffff", "#60a5fa", "#f472b6", "#34d399"];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      for (let i = 0; i < 55; i++) {
+        const angle = (Math.PI * 2 * i) / 55;
+        const speed = Math.random() * 5 + 2;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          alpha: 1,
+          color
+        });
+      }
+    }
+
+    function animateFireworks() {
+      if (!fireworksActive && particles.length === 0) return;
+      fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+
+      particles.forEach((p, index) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.06;
+        p.alpha -= 0.016;
+
+        if (p.alpha <= 0) {
+          particles.splice(index, 1);
+        } else {
+          fwCtx.save();
+          fwCtx.globalAlpha = p.alpha;
+          fwCtx.fillStyle = p.color;
+          fwCtx.beginPath();
+          fwCtx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
+          fwCtx.fill();
+          fwCtx.restore();
+        }
