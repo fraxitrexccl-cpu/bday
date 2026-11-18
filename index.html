@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Happy Birthday Block Blast!</title>
+  <title>Happy Birthday Block Puzzle!</title>
   <style>
     * {
       box-sizing: border-box;
@@ -28,18 +28,18 @@
 
     h1 {
       margin-bottom: 6px;
-      font-size: 1.9rem;
+      font-size: 2rem;
       color: #0284c7;
       text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
     }
 
     .progress-bar {
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       font-size: 0.95rem;
       font-weight: 700;
       color: #0369a1;
-      background: rgba(255, 255, 255, 0.75);
-      padding: 5px 16px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 5px 18px;
       border-radius: 20px;
       border: 1.5px solid #7dd3fc;
     }
@@ -47,43 +47,47 @@
     #board-wrapper {
       position: relative;
       background: #0f172a;
-      padding: 12px;
-      border-radius: 18px;
+      padding: 14px;
+      border-radius: 20px;
       box-shadow: 0 14px 32px rgba(2, 132, 199, 0.3);
       border: 5px solid #ffffff;
     }
 
     #grid {
       display: grid;
-      grid-template-columns: repeat(8, 38px);
-      grid-template-rows: repeat(8, 38px);
-      gap: 4px;
+      grid-template-columns: repeat(5, 52px);
+      grid-template-rows: repeat(5, 52px);
+      gap: 5px;
     }
 
     .cell {
-      width: 38px;
-      height: 38px;
+      width: 52px;
+      height: 52px;
       background: #1e293b;
-      border-radius: 6px;
-      transition: transform 0.25s ease, opacity 0.3s ease, background 0.12s;
+      border-radius: 8px;
+      transition: transform 0.25s ease, opacity 0.3s ease, background 0.15s;
     }
 
     /* Glossy blue shades */
     .block-style-1 {
       background: linear-gradient(145deg, #38bdf8, #0284c7);
-      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.55), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
+      box-shadow: inset 0 3px 4px rgba(255, 255, 255, 0.55), inset 0 -3px 4px rgba(0, 0, 0, 0.25);
     }
     .block-style-2 {
       background: linear-gradient(145deg, #60a5fa, #2563eb);
-      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.55), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
+      box-shadow: inset 0 3px 4px rgba(255, 255, 255, 0.55), inset 0 -3px 4px rgba(0, 0, 0, 0.25);
     }
     .block-style-3 {
       background: linear-gradient(145deg, #22d3ee, #0891b2);
-      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.55), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
+      box-shadow: inset 0 3px 4px rgba(255, 255, 255, 0.55), inset 0 -3px 4px rgba(0, 0, 0, 0.25);
     }
     .block-style-4 {
       background: linear-gradient(145deg, #818cf8, #4f46e5);
-      box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.55), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
+      box-shadow: inset 0 3px 4px rgba(255, 255, 255, 0.55), inset 0 -3px 4px rgba(0, 0, 0, 0.25);
+    }
+    .block-style-5 {
+      background: linear-gradient(145deg, #7dd3fc, #0369a1);
+      box-shadow: inset 0 3px 4px rgba(255, 255, 255, 0.55), inset 0 -3px 4px rgba(0, 0, 0, 0.25);
     }
 
     .cell.preview {
@@ -92,25 +96,36 @@
       box-shadow: none;
     }
 
+    .cell.hint-glow {
+      background: rgba(56, 189, 248, 0.25) !important;
+      border: 2px dotted #38bdf8;
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { opacity: 0.5; }
+      to { opacity: 1; }
+    }
+
     .cell.clearing {
       transform: scale(0) rotate(25deg);
       opacity: 0;
       background: #fde047 !important;
     }
 
-    /* Tray with 3 custom shapes per wave */
+    /* Tray with custom shapes */
     #tray {
-      margin-top: 18px;
+      margin-top: 20px;
       background: rgba(255, 255, 255, 0.88);
-      padding: 12px 18px;
+      padding: 14px 20px;
       border-radius: 18px;
       border: 3px solid #7dd3fc;
       display: flex;
       align-items: center;
       justify-content: space-around;
-      gap: 18px;
+      gap: 20px;
       min-height: 115px;
-      min-width: 365px;
+      min-width: 340px;
       box-shadow: 0 8px 20px rgba(2, 132, 199, 0.15);
     }
 
@@ -118,8 +133,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 90px;
-      min-height: 90px;
+      min-width: 85px;
+      min-height: 85px;
     }
 
     .piece {
@@ -139,8 +154,8 @@
     }
 
     .mini-cell {
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
       border-radius: 5px;
       pointer-events: none;
     }
@@ -153,47 +168,48 @@
     #drag-clone {
       position: fixed;
       display: none;
-      gap: 4px;
+      gap: 5px;
       pointer-events: none;
       z-index: 50;
       filter: drop-shadow(0 12px 20px rgba(15, 23, 42, 0.45));
     }
 
     .clone-cell {
-      width: 38px;
-      height: 38px;
-      border-radius: 6px;
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
     }
 
     .clone-cell.empty {
       background: transparent;
     }
 
-    .hint-row {
-      margin-top: 10px;
+    .controls-row {
+      margin-top: 12px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
-    .hint {
+    .hint-text {
       font-size: 0.92rem;
       color: #0369a1;
       font-weight: 600;
     }
 
-    .reset-mini {
+    .small-btn {
       background: #ffffff;
       color: #0284c7;
       border: 1.5px solid #7dd3fc;
-      padding: 4px 12px;
-      font-size: 0.8rem;
+      padding: 5px 13px;
+      font-size: 0.82rem;
       font-weight: 700;
       border-radius: 14px;
       cursor: pointer;
+      transition: background 0.15s;
     }
 
-    .reset-mini:hover {
+    .small-btn:hover {
       background: #e0f2fe;
     }
 
@@ -304,7 +320,7 @@
 <body>
 
   <h1>💙 Fill the Board! 💙</h1>
-  <div class="progress-bar">Blocks Filled: <span id="filled-count">0</span> / 64</div>
+  <div class="progress-bar">Blocks Filled: <span id="filled-count">0</span> / 25</div>
 
   <div id="board-wrapper">
     <div id="grid"></div>
@@ -313,9 +329,10 @@
   <div id="tray"></div>
   <div id="drag-clone"></div>
 
-  <div class="hint-row">
-    <span class="hint" id="hint-text">Drag all custom shapes to fill the board!</span>
-    <button class="reset-mini" onclick="initGame()">Restart</button>
+  <div class="controls-row">
+    <span class="hint-text" id="hint-text">Drag the custom shapes onto the board!</span>
+    <button class="small-btn" onclick="showHint()">💡 Hint</button>
+    <button class="small-btn" onclick="initGame()">↻ Reset</button>
   </div>
 
   <!-- Floating Happy Birthday Text -->
@@ -354,115 +371,69 @@
     floatingHb.textContent = FLOATING_TEXT;
     document.getElementById("sweet-message").textContent = FINAL_SWEET_MESSAGE;
 
-    const ROWS = 8;
-    const COLS = 8;
-    const CELL_SIZE = 38;
-    const CELL_GAP = 4;
+    const SIZE = 5;
+    const CELL_SIZE = 52;
+    const CELL_GAP = 5;
 
-    // 12 Custom Non-Standard Puzzle Shapes that mathematically tile the entire 8x8 board (64 cells total)!
-    // Dealt in 4 waves of 3 shapes so she fills every single square herself!
+    // 5 Custom Non-Standard Shapes that tile the 5x5 board (5 + 6 + 5 + 6 + 3 = 25 squares!)
+    // Each piece also stores its exact solution coordinate (solR, solC) for the Hint button
     const WAVES = [
-      // Wave 1 (Top & Left interlocked custom shapes)
+      // Wave 1 (First 3 custom pieces)
       [
         {
-          style: "block-style-1", // U-Cup / Crown
+          id: "u-cup",
+          style: "block-style-1",
+          solR: 0,
+          solC: 0,
           matrix: [
             [1, 0, 1],
             [1, 1, 1]
           ]
         },
         {
-          style: "block-style-2", // Plus (+) Cross
-          matrix: [
-            [0, 1, 0],
-            [1, 1, 1],
-            [0, 1, 0]
-          ]
-        },
-        {
-          style: "block-style-3", // Staircase Zigzag
-          matrix: [
-            [1, 1, 0],
-            [0, 1, 1],
-            [0, 0, 1]
-          ]
-        }
-      ],
-      // Wave 2 (Middle interlocked custom shapes)
-      [
-        {
-          style: "block-style-4", // Claw / Hook
-          matrix: [
-            [1, 1, 1],
-            [1, 0, 1]
-          ]
-        },
-        {
-          style: "block-style-1", // Skewed S-Wing
+          id: "tuck-hook",
+          style: "block-style-2",
+          solR: 0,
+          solC: 1,
           matrix: [
             [0, 1, 1],
-            [1, 1, 0],
-            [1, 0, 0]
-          ]
-        },
-        {
-          style: "block-style-2", // Diagonal Twin + Corner
-          matrix: [
-            [1, 0, 0],
-            [1, 1, 1],
-            [0, 1, 0]
-          ]
-        }
-      ],
-      // Wave 3 (Lower-mid custom shapes)
-      [
-        {
-          style: "block-style-3", // Asymmetric T-Hook
-          matrix: [
-            [0, 1, 0],
-            [1, 1, 1],
-            [1, 0, 0]
-          ]
-        },
-        {
-          style: "block-style-4", // Bridge Arch
-          matrix: [
-            [1, 1, 1],
-            [1, 0, 0],
-            [1, 0, 0]
-          ]
-        },
-        {
-          style: "block-style-1", // Step-L
-          matrix: [
-            [0, 0, 1],
-            [0, 1, 1],
-            [1, 1, 0]
-          ]
-        }
-      ],
-      // Wave 4 (Final 3 pieces to complete all 64 blocks!)
-      [
-        {
-          style: "block-style-2", // Mini Heart / V-Cup
-          matrix: [
             [1, 0, 1],
-            [1, 1, 1],
-            [0, 1, 0]
-          ]
-        },
-        {
-          style: "block-style-3", // Fork / Trident
-          matrix: [
-            [1, 0, 1],
-            [1, 1, 1]
-          ]
-        },
-        {
-          style: "block-style-4", // Z-Bolt
-          matrix: [
-            [1, 1, 0],
             [0, 1, 1]
+          ]
+        },
+        {
+          id: "plus-cross",
+          style: "block-style-3",
+          solR: 2,
+          solC: 0,
+          matrix: [
+            [0, 1, 0],
+            [1, 1, 1],
+            [0, 1, 0]
+          ]
+        }
+      ],
+      // Wave 2 (Final 2 custom pieces to complete all 25 squares)
+      [
+        {
+          id: "zigzag-wing",
+          style: "block-style-4",
+          solR: 2,
+          solC: 2,
+          matrix: [
+            [1, 0, 0],
+            [1, 1, 1],
+            [0, 1, 0]
+          ]
+        },
+        {
+          id: "corner-step",
+          style: "block-style-5",
+          solR: 3,
+          solC: 3,
+          matrix: [
+            [0, 1],
+            [1, 1]
           ]
         }
       ]
@@ -478,8 +449,7 @@
     let isFinished = false;
 
     function initGame() {
-      // Board starts 100% EMPTY so she places every piece herself!
-      board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+      board = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
       currentWaveIndex = 0;
       placedInWave = 0;
       totalFilled = 0;
@@ -489,7 +459,7 @@
       filledCountEl.textContent = "0";
       floatingHb.classList.remove("show");
       finalModal.classList.remove("active");
-      hintText.textContent = "Drag all custom shapes to fill the empty board!";
+      hintText.textContent = "Drag the custom shapes onto the board!";
       stopFireworks();
 
       renderBoard();
@@ -498,8 +468,8 @@
 
     function renderBoard() {
       gridEl.innerHTML = "";
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
           const cell = document.createElement("div");
           cell.className = "cell";
           cell.dataset.row = r;
@@ -524,7 +494,8 @@
 
         const piece = document.createElement("div");
         piece.className = "piece";
-        piece.style.gridTemplateColumns = `repeat(${shape.matrix[0].length}, 22px)`;
+        piece.dataset.shapeId = shape.id;
+        piece.style.gridTemplateColumns = `repeat(${shape.matrix[0].length}, 24px)`;
 
         shape.matrix.forEach((row) => {
           row.forEach((val) => {
@@ -540,9 +511,40 @@
       });
     }
 
+    function showHint() {
+      if (isFinished) return;
+      document.querySelectorAll(".hint-glow").forEach(c => c.classList.remove("hint-glow"));
+
+      const shapes = WAVES[currentWaveIndex];
+      const nextShape = shapes.find(s => {
+        const el = document.querySelector(`.piece[data-shape-id="${s.id}"]`);
+        return el && el.dataset.used !== "true";
+      });
+
+      if (!nextShape) return;
+
+      if (!canPlace(nextShape, nextShape.solR, nextShape.solC)) {
+        hintText.textContent = "A piece is blocking the spot—hit Reset to try fresh!";
+        return;
+      }
+
+      for (let r = 0; r < nextShape.matrix.length; r++) {
+        for (let c = 0; c < nextShape.matrix[0].length; c++) {
+          if (nextShape.matrix[r][c] === 1) {
+            const cell = document.querySelector(
+              `.cell[data-row="${nextShape.solR + r}"][data-col="${nextShape.solC + c}"]`
+            );
+            if (cell) cell.classList.add("hint-glow");
+          }
+        }
+      }
+    }
+
     function startDrag(e, shape, pieceEl) {
       if (isFinished || pieceEl.dataset.used === "true") return;
       e.preventDefault();
+
+      document.querySelectorAll(".hint-glow").forEach(c => c.classList.remove("hint-glow"));
 
       activeShape = shape;
       activePieceEl = pieceEl;
@@ -573,7 +575,7 @@
       const cloneH = rows * CELL_SIZE + (rows - 1) * CELL_GAP;
 
       const topLeftX = clientX - cloneW / 2;
-      const topLeftY = clientY - cloneH / 2 - 28;
+      const topLeftY = clientY - cloneH / 2 - 30;
 
       dragClone.style.left = `${topLeftX}px`;
       dragClone.style.top = `${topLeftY}px`;
@@ -595,7 +597,7 @@
           if (shape.matrix[r][c] === 1) {
             const br = startR + r;
             const bc = startC + c;
-            if (br < 0 || br >= ROWS || bc < 0 || bc >= COLS) return false;
+            if (br < 0 || br >= SIZE || bc < 0 || bc >= SIZE) return false;
             if (board[br][bc] !== null) return false;
           }
         }
@@ -643,7 +645,7 @@
       const cloneW = cols * CELL_SIZE + (cols - 1) * CELL_GAP;
       const cloneH = rows * CELL_SIZE + (rows - 1) * CELL_GAP;
       const topLeftX = e.clientX - cloneW / 2;
-      const topLeftY = e.clientY - cloneH / 2 - 28;
+      const topLeftY = e.clientY - cloneH / 2 - 30;
 
       const { row, col } = getTargetGridPos(topLeftX, topLeftY);
       clearPreview();
@@ -668,11 +670,9 @@
         placedInWave++;
         renderBoard();
 
-        // Check if the entire 8x8 board is filled (64 blocks)
-        if (totalFilled >= 64 || (currentWaveIndex === WAVES.length - 1 && placedInWave === 3)) {
+        if (totalFilled >= 25) {
           triggerAllClearCelebration();
-        } else if (placedInWave === 3) {
-          // Deal the next 3 custom shapes!
+        } else if (placedInWave === WAVES[currentWaveIndex].length) {
           currentWaveIndex++;
           setTimeout(() => loadWave(currentWaveIndex), 200);
         }
@@ -686,33 +686,35 @@
 
     function triggerAllClearCelebration() {
       isFinished = true;
-      hintText.textContent = "FULL BOARD CLEAR!! ✨";
+      hintText.textContent = "ALL CLEAR!! ✨";
 
-      // 1. Blast all blocks off the board in a wave
       setTimeout(() => {
         document.querySelectorAll(".cell").forEach((cell, idx) => {
           setTimeout(() => {
             cell.classList.add("clearing");
-            cell.classList.remove("block-style-1", "block-style-2", "block-style-3", "block-style-4");
-          }, Math.floor(idx / 8) * 35);
+            cell.classList.remove(
+              "block-style-1",
+              "block-style-2",
+              "block-style-3",
+              "block-style-4",
+              "block-style-5"
+            );
+          }, Math.floor(idx / SIZE) * 45);
         });
       }, 250);
 
-      // 2. Floating "Happy Birthday!" text first
       setTimeout(() => {
         floatingHb.classList.add("show");
-      }, 700);
+      }, 650);
 
-      // 3. Fireworks right after
       setTimeout(() => {
         startFireworks();
-      }, 1400);
+      }, 1350);
 
-      // 4. Final Sweet Pop-Up Card
       setTimeout(() => {
         floatingHb.classList.remove("show");
         finalModal.classList.add("active");
-      }, 3500);
+      }, 3400);
     }
 
     // ==========================================
