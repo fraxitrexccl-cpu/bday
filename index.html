@@ -198,8 +198,15 @@
     .controls-row {
       margin-top: 12px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+    }
+
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .hint-text {
@@ -212,15 +219,21 @@
       background: #ffffff;
       color: #0284c7;
       border: 1.5px solid #7dd3fc;
-      padding: 5px 13px;
-      font-size: 0.82rem;
+      padding: 6px 14px;
+      font-size: 0.85rem;
       font-weight: 700;
       border-radius: 14px;
       cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
     }
 
-    .small-btn:hover {
+    .small-btn:hover:not(:disabled) {
       background: #e0f2fe;
+    }
+
+    .small-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
 
     #floating-hb {
@@ -336,8 +349,11 @@
 
   <div class="controls-row">
     <span class="hint-text" id="hint-text">Drag the shapes onto the board!</span>
-    <button class="small-btn" id="hint-btn">💡 Hint</button>
-    <button class="small-btn" id="reset-btn">↻ Reset</button>
+    <div class="btn-group">
+      <button class="small-btn" id="undo-btn" disabled>↩️ Undo</button>
+      <button class="small-btn" id="hint-btn">💡 Hint</button>
+      <button class="small-btn" id="reset-btn">↻ Reset</button>
+    </div>
   </div>
 
   <div id="floating-hb">Happy Birthday! 🎉</div>
@@ -355,7 +371,7 @@
   <script>
     const FLOATING_TEXT = "Happy Birthday! 🎉";
     const FINAL_SWEET_MESSAGE =
-      "Wishing you the sweetest birthday filled with endless laughter, love, and all your favorite things. Thank you for always being such an amazing person in my life. Here's to another wonderful year ahead! 💙";
+      "Happyy Birthday, Neriahhh. Hindi mo man ako alwayss na nakikita but I  alwayss wishh you the best in your journey. Umuwi ka na mah ta inta ag date. Anywayyy, wishing you the sweetest birthday filled with endless laughter, love, and all your favorite things. Thank you for always being such an amazing person in my life. Here's to another wonderful year ahead, beb🥳";
 
     const ROWS = 7;
     const COLS = 6;
@@ -373,11 +389,12 @@
       { id: "yellow", style: "color-yellow", solR: 2, solC: 3, matrix: [[0,0,1],[0,0,1],[0,0,1],[0,0,1],[1,1,1]] }
     ];
 
-    let gridEl, trayEl, dragClone, floatingHb, finalModal, hintText, filledCountEl;
+    let gridEl, trayEl, dragClone, floatingHb, finalModal, hintText, filledCountEl, undoBtn;
     let waves = [];
+    let usedIds = new Set();
+    let moveHistory = [];
     let board = [];
     let currentWaveIndex = 0;
-    let placedInWave = 0;
     let totalFilled = 0;
     let activeShape = null;
     let activePieceEl = null;
@@ -397,16 +414,21 @@
       return copy;
     }
 
+    function updateUndoButton() {
+      undoBtn.disabled = moveHistory.length === 0 || isFinished;
+    }
+
     function initGame() {
       board = [];
       for (let r = 0; r < ROWS; r++) {
         board.push(new Array(COLS).fill(null));
       }
       currentWaveIndex = 0;
-      placedInWave = 0;
       totalFilled = 0;
       activeShape = null;
       isFinished = false;
+      usedIds = new Set();
+      moveHistory = [];
 
       const shuffled = shuffleArray(ALL_SHAPES);
       waves = [
@@ -420,6 +442,7 @@
       finalModal.classList.remove("active");
       hintText.textContent = "Drag the shapes onto the board!";
       stopFireworks();
+      updateUndoButton();
 
       renderBoard();
       loadWave(0);
@@ -443,7 +466,6 @@
 
     function loadWave(waveIdx) {
       trayEl.innerHTML = "";
-      placedInWave = 0;
       const shapes = waves[waveIdx];
       if (!shapes) return;
 
@@ -455,6 +477,11 @@
         piece.className = "piece";
         piece.dataset.shapeId = shape.id;
         piece.style.gridTemplateColumns = "repeat(" + shape.matrix[0].length + ", 21px)";
+
+        if (usedIds.has(shape.id)) {
+          piece.style.visibility = "hidden";
+          piece.dataset.used = "true";
+        }
 
         shape.matrix.forEach((row) => {
           row.forEach((val) => {
@@ -470,20 +497,40 @@
       });
     }
 
+    function undoLastMove() {
+      if (moveHistory.length === 0 || isFinished) return;
+
+      document.querySelectorAll(".hint-glow").forEach((c) => c.classList.remove("hint-glow"));
+
+      const last = moveHistory.pop();
+
+      // Remove placed blocks from board
+      last.cells.forEach((pos) => {
+        board[pos.r][pos.c] = null;
+      });
+
+      totalFilled -= last.cells.length;
+      filledCountEl.textContent = totalFilled;
+      usedIds.delete(last.shapeId);
+      currentWaveIndex = last.waveIndex;
+      hintText.textContent = "Drag the shapes onto the board!";
+
+      renderBoard();
+      loadWave(currentWaveIndex);
+      updateUndoButton();
+    }
+
     function showHint() {
       if (isFinished) return;
       document.querySelectorAll(".hint-glow").forEach((c) => c.classList.remove("hint-glow"));
 
       const shapes = waves[currentWaveIndex];
-      const nextShape = shapes.find((s) => {
-        const el = document.querySelector('.piece[data-shape-id="' + s.id + '"]');
-        return el && el.dataset.used !== "true";
-      });
+      const nextShape = shapes.find((s) => !usedIds.has(s.id));
 
       if (!nextShape) return;
 
       if (!canPlace(nextShape, nextShape.solR, nextShape.solC)) {
-        hintText.textContent = "A piece is blocking the spot—hit Reset to try fresh!";
+        hintText.textContent = "A piece is blocking the spot—use Undo or Reset!";
         return;
       }
 
@@ -500,7 +547,7 @@
     }
 
     function startDrag(e, shape, pieceEl) {
-      if (isFinished || pieceEl.dataset.used === "true") return;
+      if (isFinished || usedIds.has(shape.id)) return;
       e.preventDefault();
 
       document.querySelectorAll(".hint-glow").forEach((c) => c.classList.remove("hint-glow"));
@@ -613,27 +660,36 @@
       dragClone.style.display = "none";
 
       if (canPlace(activeShape, pos.row, pos.col)) {
-        let added = 0;
+        const placedCells = [];
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
             if (activeShape.matrix[r][c] === 1) {
               board[pos.row + r][pos.col + c] = activeShape.style;
-              added++;
+              placedCells.push({ r: pos.row + r, c: pos.col + c });
             }
           }
         }
 
-        totalFilled += added;
+        moveHistory.push({
+          shapeId: activeShape.id,
+          waveIndex: currentWaveIndex,
+          cells: placedCells
+        });
+
+        usedIds.add(activeShape.id);
+        totalFilled += placedCells.length;
         filledCountEl.textContent = totalFilled;
 
         activePieceEl.style.visibility = "hidden";
         activePieceEl.dataset.used = "true";
-        placedInWave++;
         renderBoard();
+        updateUndoButton();
+
+        const waveCompleted = waves[currentWaveIndex].every((s) => usedIds.has(s.id));
 
         if (totalFilled >= 42) {
           triggerAllClearCelebration();
-        } else if (placedInWave === waves[currentWaveIndex].length) {
+        } else if (waveCompleted) {
           currentWaveIndex++;
           setTimeout(() => loadWave(currentWaveIndex), 200);
         }
@@ -647,6 +703,7 @@
 
     function triggerAllClearCelebration() {
       isFinished = true;
+      updateUndoButton();
       hintText.textContent = "ALL CLEAR!! ✨";
 
       setTimeout(() => {
@@ -743,12 +800,14 @@
       finalModal = document.getElementById("final-modal");
       hintText = document.getElementById("hint-text");
       filledCountEl = document.getElementById("filled-count");
+      undoBtn = document.getElementById("undo-btn");
       fwCanvas = document.getElementById("fireworksCanvas");
       fwCtx = fwCanvas.getContext("2d");
 
       floatingHb.textContent = FLOATING_TEXT;
       document.getElementById("sweet-message").textContent = FINAL_SWEET_MESSAGE;
 
+      undoBtn.addEventListener("click", undoLastMove);
       document.getElementById("hint-btn").addEventListener("click", showHint);
       document.getElementById("reset-btn").addEventListener("click", initGame);
       document.getElementById("play-again-btn").addEventListener("click", initGame);
