@@ -53,12 +53,13 @@
       border: 5px solid #ffffff;
     }
 
-    /* 7 Rows x 6 Columns */
     #grid {
       display: grid;
       grid-template-columns: repeat(6, 44px);
       grid-template-rows: repeat(7, 44px);
       gap: 4px;
+      width: 284px;
+      height: 332px;
     }
 
     .cell {
@@ -69,7 +70,6 @@
       transition: transform 0.25s ease, opacity 0.3s ease, background 0.15s;
     }
 
-    /* Exact 8 block colors with glossy Block Blast shading */
     .color-brown {
       background: linear-gradient(145deg, #bfa284, #9f8163);
       box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.45), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
@@ -110,7 +110,7 @@
     }
 
     .cell.hint-glow {
-      background: rgba(56, 189, 248, 0.28) !important;
+      background: rgba(56, 189, 248, 0.3) !important;
       border: 2px dotted #38bdf8;
       animation: pulse 0.9s infinite alternate;
     }
@@ -126,7 +126,6 @@
       background: #fde047 !important;
     }
 
-    /* Tray with custom shapes */
     #tray {
       margin-top: 18px;
       background: rgba(255, 255, 255, 0.9);
@@ -177,7 +176,6 @@
       background: transparent;
     }
 
-    /* Full-size floating clone when dragging */
     #drag-clone {
       position: fixed;
       display: none;
@@ -219,14 +217,12 @@
       font-weight: 700;
       border-radius: 14px;
       cursor: pointer;
-      transition: background 0.15s;
     }
 
     .small-btn:hover {
       background: #e0f2fe;
     }
 
-    /* Floating "Happy Birthday!" Text */
     #floating-hb {
       position: fixed;
       top: 42%;
@@ -252,7 +248,6 @@
       transform: translate(-50%, -85%) scale(1);
     }
 
-    /* Fireworks Canvas */
     #fireworksCanvas {
       position: fixed;
       inset: 0;
@@ -262,7 +257,6 @@
       z-index: 15;
     }
 
-    /* Final Sweet Pop-Up Modal */
     #final-modal {
       position: fixed;
       inset: 0;
@@ -321,12 +315,10 @@
       font-weight: bold;
       border-radius: 25px;
       cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
     }
 
     button.main-btn:hover {
       background: #0284c7;
-      transform: scale(1.05);
     }
   </style>
 </head>
@@ -344,143 +336,44 @@
 
   <div class="controls-row">
     <span class="hint-text" id="hint-text">Drag the shapes onto the board!</span>
-    <button class="small-btn" onclick="showHint()">💡 Hint</button>
-    <button class="small-btn" onclick="initGame()">↻ Reset</button>
+    <button class="small-btn" id="hint-btn">💡 Hint</button>
+    <button class="small-btn" id="reset-btn">↻ Reset</button>
   </div>
 
-  <!-- Floating Happy Birthday Text -->
   <div id="floating-hb">Happy Birthday! 🎉</div>
-
-  <!-- Fireworks Layer -->
   <canvas id="fireworksCanvas"></canvas>
 
-  <!-- Final Sweet Message Pop-Up -->
   <div id="final-modal">
     <div class="card">
       <div style="font-size: 3rem; margin-bottom: 10px;">💙🎂🎆</div>
       <h2>Happy Birthday!</h2>
       <p id="sweet-message"></p>
-      <button class="main-btn" onclick="initGame()">Play Again</button>
+      <button class="main-btn" id="play-again-btn">Play Again</button>
     </div>
   </div>
 
   <script>
-    // ==========================================
-    // ✏️ CUSTOMIZE YOUR MESSAGES HERE
-    // ==========================================
     const FLOATING_TEXT = "Happy Birthday! 🎉";
-    const FINAL_SWEET_MESSAGE = 
+    const FINAL_SWEET_MESSAGE =
       "Wishing you the sweetest birthday filled with endless laughter, love, and all your favorite things. Thank you for always being such an amazing person in my life. Here's to another wonderful year ahead! 💙";
-    // ==========================================
-
-    const gridEl = document.getElementById("grid");
-    const trayEl = document.getElementById("tray");
-    const dragClone = document.getElementById("drag-clone");
-    const floatingHb = document.getElementById("floating-hb");
-    const finalModal = document.getElementById("final-modal");
-    const hintText = document.getElementById("hint-text");
-    const filledCountEl = document.getElementById("filled-count");
-
-    floatingHb.textContent = FLOATING_TEXT;
-    document.getElementById("sweet-message").textContent = FINAL_SWEET_MESSAGE;
 
     const ROWS = 7;
     const COLS = 6;
     const CELL_SIZE = 44;
     const CELL_GAP = 4;
 
-    // All 8 custom pieces (shuffled randomly every game!)
     const ALL_SHAPES = [
-      {
-        id: "brown-piece",
-        style: "color-brown",
-        solR: 0,
-        solC: 0,
-        matrix: [
-          [1, 1, 0],
-          [0, 1, 0],
-          [0, 1, 1]
-        ]
-      },
-      {
-        id: "lilac-piece",
-        style: "color-lilac",
-        solR: 0,
-        solC: 2,
-        matrix: [
-          [1, 1, 1],
-          [1, 0, 0]
-        ]
-      },
-      {
-        id: "red-piece",
-        style: "color-red",
-        solR: 0,
-        solC: 3,
-        matrix: [
-          [0, 0, 1],
-          [1, 1, 1],
-          [0, 1, 0]
-        ]
-      },
-      {
-        id: "orange-piece",
-        style: "color-orange",
-        solR: 1,
-        solC: 0,
-        matrix: [
-          [1, 0],
-          [1, 0],
-          [1, 1]
-        ]
-      },
-      {
-        id: "blue-piece",
-        style: "color-blue",
-        solR: 2,
-        solC: 2,
-        matrix: [
-          [0, 1, 0],
-          [1, 1, 1]
-        ]
-      },
-      {
-        id: "green-piece",
-        style: "color-green",
-        solR: 4,
-        solC: 0,
-        matrix: [
-          [1, 1, 1],
-          [1, 1, 0],
-          [1, 1, 0]
-        ]
-      },
-      {
-        id: "pink-piece",
-        style: "color-pink",
-        solR: 4,
-        solC: 2,
-        matrix: [
-          [0, 1, 1],
-          [1, 1, 1],
-          [1, 0, 0]
-        ]
-      },
-      {
-        id: "yellow-piece",
-        style: "color-yellow",
-        solR: 2,
-        solC: 3,
-        matrix: [
-          [0, 0, 1],
-          [0, 0, 1],
-          [0, 0, 1],
-          [0, 0, 1],
-          [1, 1, 1]
-        ]
-      }
+      { id: "brown", style: "color-brown", solR: 0, solC: 0, matrix: [[1,1,0],[0,1,0],[0,1,1]] },
+      { id: "lilac", style: "color-lilac", solR: 0, solC: 2, matrix: [[1,1,1],[1,0,0]] },
+      { id: "red", style: "color-red", solR: 0, solC: 3, matrix: [[0,0,1],[1,1,1],[0,1,0]] },
+      { id: "orange", style: "color-orange", solR: 1, solC: 0, matrix: [[1,0],[1,0],[1,1]] },
+      { id: "blue", style: "color-blue", solR: 2, solC: 2, matrix: [[0,1,0],[1,1,1]] },
+      { id: "green", style: "color-green", solR: 4, solC: 0, matrix: [[1,1,1],[1,1,0],[1,1,0]] },
+      { id: "pink", style: "color-pink", solR: 4, solC: 2, matrix: [[0,1,1],[1,1,1],[1,0,0]] },
+      { id: "yellow", style: "color-yellow", solR: 2, solC: 3, matrix: [[0,0,1],[0,0,1],[0,0,1],[0,0,1],[1,1,1]] }
     ];
 
+    let gridEl, trayEl, dragClone, floatingHb, finalModal, hintText, filledCountEl;
     let waves = [];
     let board = [];
     let currentWaveIndex = 0;
@@ -491,25 +384,30 @@
     let currentPreviewCells = [];
     let isFinished = false;
 
-    // Fisher-Yates Shuffle so the order of blocks is completely randomized
-    function shuffleArray(array) {
-      const copy = [...array];
+    let fwCanvas, fwCtx, particles = [], fireworksActive = false, fwInterval;
+
+    function shuffleArray(arr) {
+      const copy = arr.slice();
       for (let i = copy.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [copy[i], copy[j]] = [copy[j], copy[i]];
+        const temp = copy[i];
+        copy[i] = copy[j];
+        copy[j] = temp;
       }
       return copy;
     }
 
     function initGame() {
-      board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+      board = [];
+      for (let r = 0; r < ROWS; r++) {
+        board.push(new Array(COLS).fill(null));
+      }
       currentWaveIndex = 0;
       placedInWave = 0;
       totalFilled = 0;
       activeShape = null;
       isFinished = false;
 
-      // Shuffle all 8 shapes and split them into random waves of 3, 3, and 2
       const shuffled = shuffleArray(ALL_SHAPES);
       waves = [
         shuffled.slice(0, 3),
@@ -556,12 +454,12 @@
         const piece = document.createElement("div");
         piece.className = "piece";
         piece.dataset.shapeId = shape.id;
-        piece.style.gridTemplateColumns = `repeat(${shape.matrix[0].length}, 21px)`;
+        piece.style.gridTemplateColumns = "repeat(" + shape.matrix[0].length + ", 21px)";
 
         shape.matrix.forEach((row) => {
           row.forEach((val) => {
             const mc = document.createElement("div");
-            mc.className = val ? `mini-cell ${shape.style}` : "mini-cell empty";
+            mc.className = val ? "mini-cell " + shape.style : "mini-cell empty";
             piece.appendChild(mc);
           });
         });
@@ -574,11 +472,11 @@
 
     function showHint() {
       if (isFinished) return;
-      document.querySelectorAll(".hint-glow").forEach(c => c.classList.remove("hint-glow"));
+      document.querySelectorAll(".hint-glow").forEach((c) => c.classList.remove("hint-glow"));
 
       const shapes = waves[currentWaveIndex];
-      const nextShape = shapes.find(s => {
-        const el = document.querySelector(`.piece[data-shape-id="${s.id}"]`);
+      const nextShape = shapes.find((s) => {
+        const el = document.querySelector('.piece[data-shape-id="' + s.id + '"]');
         return el && el.dataset.used !== "true";
       });
 
@@ -593,7 +491,7 @@
         for (let c = 0; c < nextShape.matrix[0].length; c++) {
           if (nextShape.matrix[r][c] === 1) {
             const cell = document.querySelector(
-              `.cell[data-row="${nextShape.solR + r}"][data-col="${nextShape.solC + c}"]`
+              '.cell[data-row="' + (nextShape.solR + r) + '"][data-col="' + (nextShape.solC + c) + '"]'
             );
             if (cell) cell.classList.add("hint-glow");
           }
@@ -605,7 +503,7 @@
       if (isFinished || pieceEl.dataset.used === "true") return;
       e.preventDefault();
 
-      document.querySelectorAll(".hint-glow").forEach(c => c.classList.remove("hint-glow"));
+      document.querySelectorAll(".hint-glow").forEach((c) => c.classList.remove("hint-glow"));
 
       activeShape = shape;
       activePieceEl = pieceEl;
@@ -613,12 +511,12 @@
 
       dragClone.innerHTML = "";
       dragClone.style.display = "grid";
-      dragClone.style.gridTemplateColumns = `repeat(${shape.matrix[0].length}, ${CELL_SIZE}px)`;
+      dragClone.style.gridTemplateColumns = "repeat(" + shape.matrix[0].length + ", " + CELL_SIZE + "px)";
 
       shape.matrix.forEach((row) => {
         row.forEach((val) => {
           const cc = document.createElement("div");
-          cc.className = val ? `clone-cell ${shape.style}` : "clone-cell empty";
+          cc.className = val ? "clone-cell " + shape.style : "clone-cell empty";
           dragClone.appendChild(cc);
         });
       });
@@ -638,8 +536,8 @@
       const topLeftX = clientX - cloneW / 2;
       const topLeftY = clientY - cloneH / 2 - 30;
 
-      dragClone.style.left = `${topLeftX}px`;
-      dragClone.style.top = `${topLeftY}px`;
+      dragClone.style.left = topLeftX + "px";
+      dragClone.style.top = topLeftY + "px";
 
       updateBoardPreview(topLeftX, topLeftY);
     }
@@ -649,7 +547,7 @@
       const step = CELL_SIZE + CELL_GAP;
       const col = Math.round((topLeftX - gridRect.left) / step);
       const row = Math.round((topLeftY - gridRect.top) / step);
-      return { row, col };
+      return { row: row, col: col };
     }
 
     function canPlace(shape, startR, startC) {
@@ -667,7 +565,7 @@
     }
 
     function clearPreview() {
-      currentPreviewCells.forEach(cell => cell.classList.remove("preview"));
+      currentPreviewCells.forEach((cell) => cell.classList.remove("preview"));
       currentPreviewCells = [];
     }
 
@@ -675,12 +573,14 @@
       clearPreview();
       if (!activeShape) return;
 
-      const { row, col } = getTargetGridPos(topLeftX, topLeftY);
-      if (canPlace(activeShape, row, col)) {
+      const pos = getTargetGridPos(topLeftX, topLeftY);
+      if (canPlace(activeShape, pos.row, pos.col)) {
         for (let r = 0; r < activeShape.matrix.length; r++) {
           for (let c = 0; c < activeShape.matrix[0].length; c++) {
             if (activeShape.matrix[r][c] === 1) {
-              const cell = document.querySelector(`.cell[data-row="${row + r}"][data-col="${col + c}"]`);
+              const cell = document.querySelector(
+                '.cell[data-row="' + (pos.row + r) + '"][data-col="' + (pos.col + c) + '"]'
+              );
               if (cell) {
                 cell.classList.add("preview");
                 currentPreviewCells.push(cell);
@@ -708,16 +608,16 @@
       const topLeftX = e.clientX - cloneW / 2;
       const topLeftY = e.clientY - cloneH / 2 - 30;
 
-      const { row, col } = getTargetGridPos(topLeftX, topLeftY);
+      const pos = getTargetGridPos(topLeftX, topLeftY);
       clearPreview();
       dragClone.style.display = "none";
 
-      if (canPlace(activeShape, row, col)) {
+      if (canPlace(activeShape, pos.row, pos.col)) {
         let added = 0;
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
             if (activeShape.matrix[r][c] === 1) {
-              board[row + r][col + c] = activeShape.style;
+              board[pos.row + r][pos.col + c] = activeShape.style;
               added++;
             }
           }
@@ -733,4 +633,130 @@
 
         if (totalFilled >= 42) {
           triggerAllClearCelebration();
-        } else if
+        } else if (placedInWave === waves[currentWaveIndex].length) {
+          currentWaveIndex++;
+          setTimeout(() => loadWave(currentWaveIndex), 200);
+        }
+      } else {
+        activePieceEl.classList.remove("dragging-source");
+      }
+
+      activeShape = null;
+      activePieceEl = null;
+    }
+
+    function triggerAllClearCelebration() {
+      isFinished = true;
+      hintText.textContent = "ALL CLEAR!! ✨";
+
+      setTimeout(() => {
+        document.querySelectorAll(".cell").forEach((cell, idx) => {
+          setTimeout(() => {
+            cell.className = "cell clearing";
+          }, Math.floor(idx / COLS) * 40);
+        });
+      }, 250);
+
+      setTimeout(() => floatingHb.classList.add("show"), 650);
+      setTimeout(() => startFireworks(), 1350);
+      setTimeout(() => {
+        floatingHb.classList.remove("show");
+        finalModal.classList.add("active");
+      }, 3400);
+    }
+
+    function resizeCanvas() {
+      fwCanvas.width = window.innerWidth;
+      fwCanvas.height = window.innerHeight;
+    }
+
+    function createBurst(x, y) {
+      const colors = ["#38bdf8", "#fde047", "#ffffff", "#60a5fa", "#f472b6", "#34d399"];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      for (let i = 0; i < 55; i++) {
+        const angle = (Math.PI * 2 * i) / 55;
+        const speed = Math.random() * 5 + 2;
+        particles.push({
+          x: x,
+          y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          alpha: 1,
+          color: color
+        });
+      }
+    }
+
+    function animateFireworks() {
+      if (!fireworksActive && particles.length === 0) return;
+      fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.06;
+        p.alpha -= 0.016;
+
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+        } else {
+          fwCtx.save();
+          fwCtx.globalAlpha = p.alpha;
+          fwCtx.fillStyle = p.color;
+          fwCtx.beginPath();
+          fwCtx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
+          fwCtx.fill();
+          fwCtx.restore();
+        }
+      }
+
+      requestAnimationFrame(animateFireworks);
+    }
+
+    function startFireworks() {
+      fireworksActive = true;
+      createBurst(fwCanvas.width * 0.3, fwCanvas.height * 0.35);
+      createBurst(fwCanvas.width * 0.7, fwCanvas.height * 0.35);
+      animateFireworks();
+
+      fwInterval = setInterval(() => {
+        if (!fireworksActive) return;
+        const rx = Math.random() * (fwCanvas.width * 0.7) + fwCanvas.width * 0.15;
+        const ry = Math.random() * (fwCanvas.height * 0.45) + fwCanvas.height * 0.12;
+        createBurst(rx, ry);
+      }, 650);
+    }
+
+    function stopFireworks() {
+      fireworksActive = false;
+      clearInterval(fwInterval);
+      particles = [];
+      if (fwCtx) fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      gridEl = document.getElementById("grid");
+      trayEl = document.getElementById("tray");
+      dragClone = document.getElementById("drag-clone");
+      floatingHb = document.getElementById("floating-hb");
+      finalModal = document.getElementById("final-modal");
+      hintText = document.getElementById("hint-text");
+      filledCountEl = document.getElementById("filled-count");
+      fwCanvas = document.getElementById("fireworksCanvas");
+      fwCtx = fwCanvas.getContext("2d");
+
+      floatingHb.textContent = FLOATING_TEXT;
+      document.getElementById("sweet-message").textContent = FINAL_SWEET_MESSAGE;
+
+      document.getElementById("hint-btn").addEventListener("click", showHint);
+      document.getElementById("reset-btn").addEventListener("click", initGame);
+      document.getElementById("play-again-btn").addEventListener("click", initGame);
+
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+      initGame();
+    });
+  </script>
+</body>
+</html>
