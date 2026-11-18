@@ -53,7 +53,7 @@
       border: 5px solid #ffffff;
     }
 
-    /* 7 Rows x 6 Columns matching your exact layout */
+    /* 7 Rows x 6 Columns */
     #grid {
       display: grid;
       grid-template-columns: repeat(6, 44px);
@@ -69,7 +69,7 @@
       transition: transform 0.25s ease, opacity 0.3s ease, background 0.15s;
     }
 
-    /* Exact 8 block colors from your image with glossy Block Blast shading */
+    /* Exact 8 block colors with glossy Block Blast shading */
     .color-brown {
       background: linear-gradient(145deg, #bfa284, #9f8163);
       box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.45), inset 0 -3px 3px rgba(0, 0, 0, 0.25);
@@ -389,107 +389,99 @@
     const CELL_SIZE = 44;
     const CELL_GAP = 4;
 
-    // Exact 8 shapes & colors from your reference image (totaling all 42 squares of the 7x6 board!)
-    const WAVES = [
-      // Wave 1 (3 shapes)
-      [
-        {
-          id: "brown-piece",
-          style: "color-brown",
-          solR: 0,
-          solC: 0,
-          matrix: [
-            [1, 1, 0],
-            [0, 1, 0],
-            [0, 1, 1]
-          ]
-        },
-        {
-          id: "lilac-piece",
-          style: "color-lilac",
-          solR: 0,
-          solC: 2,
-          matrix: [
-            [1, 1, 1],
-            [1, 0, 0]
-          ]
-        },
-        {
-          id: "red-piece",
-          style: "color-red",
-          solR: 0,
-          solC: 3,
-          matrix: [
-            [0, 0, 1],
-            [1, 1, 1],
-            [0, 1, 0]
-          ]
-        }
-      ],
-      // Wave 2 (3 shapes)
-      [
-        {
-          id: "orange-piece",
-          style: "color-orange",
-          solR: 1,
-          solC: 0,
-          matrix: [
-            [1, 0],
-            [1, 0],
-            [1, 1]
-          ]
-        },
-        {
-          id: "blue-piece",
-          style: "color-blue",
-          solR: 2,
-          solC: 2,
-          matrix: [
-            [0, 1, 0],
-            [1, 1, 1]
-          ]
-        },
-        {
-          id: "green-piece",
-          style: "color-green",
-          solR: 4,
-          solC: 0,
-          matrix: [
-            [1, 1, 1],
-            [1, 1, 0],
-            [1, 1, 0]
-          ]
-        }
-      ],
-      // Wave 3 (Final 2 shapes to complete all 42 squares!)
-      [
-        {
-          id: "pink-piece",
-          style: "color-pink",
-          solR: 4,
-          solC: 2,
-          matrix: [
-            [0, 1, 1],
-            [1, 1, 1],
-            [1, 0, 0]
-          ]
-        },
-        {
-          id: "yellow-piece",
-          style: "color-yellow",
-          solR: 2,
-          solC: 3,
-          matrix: [
-            [0, 0, 1],
-            [0, 0, 1],
-            [0, 0, 1],
-            [0, 0, 1],
-            [1, 1, 1]
-          ]
-        }
-      ]
+    // All 8 custom pieces (shuffled randomly every game!)
+    const ALL_SHAPES = [
+      {
+        id: "brown-piece",
+        style: "color-brown",
+        solR: 0,
+        solC: 0,
+        matrix: [
+          [1, 1, 0],
+          [0, 1, 0],
+          [0, 1, 1]
+        ]
+      },
+      {
+        id: "lilac-piece",
+        style: "color-lilac",
+        solR: 0,
+        solC: 2,
+        matrix: [
+          [1, 1, 1],
+          [1, 0, 0]
+        ]
+      },
+      {
+        id: "red-piece",
+        style: "color-red",
+        solR: 0,
+        solC: 3,
+        matrix: [
+          [0, 0, 1],
+          [1, 1, 1],
+          [0, 1, 0]
+        ]
+      },
+      {
+        id: "orange-piece",
+        style: "color-orange",
+        solR: 1,
+        solC: 0,
+        matrix: [
+          [1, 0],
+          [1, 0],
+          [1, 1]
+        ]
+      },
+      {
+        id: "blue-piece",
+        style: "color-blue",
+        solR: 2,
+        solC: 2,
+        matrix: [
+          [0, 1, 0],
+          [1, 1, 1]
+        ]
+      },
+      {
+        id: "green-piece",
+        style: "color-green",
+        solR: 4,
+        solC: 0,
+        matrix: [
+          [1, 1, 1],
+          [1, 1, 0],
+          [1, 1, 0]
+        ]
+      },
+      {
+        id: "pink-piece",
+        style: "color-pink",
+        solR: 4,
+        solC: 2,
+        matrix: [
+          [0, 1, 1],
+          [1, 1, 1],
+          [1, 0, 0]
+        ]
+      },
+      {
+        id: "yellow-piece",
+        style: "color-yellow",
+        solR: 2,
+        solC: 3,
+        matrix: [
+          [0, 0, 1],
+          [0, 0, 1],
+          [0, 0, 1],
+          [0, 0, 1],
+          [1, 1, 1]
+        ]
+      }
     ];
 
+    let waves = [];
     let board = [];
     let currentWaveIndex = 0;
     let placedInWave = 0;
@@ -499,6 +491,16 @@
     let currentPreviewCells = [];
     let isFinished = false;
 
+    // Fisher-Yates Shuffle so the order of blocks is completely randomized
+    function shuffleArray(array) {
+      const copy = [...array];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
     function initGame() {
       board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
       currentWaveIndex = 0;
@@ -506,6 +508,14 @@
       totalFilled = 0;
       activeShape = null;
       isFinished = false;
+
+      // Shuffle all 8 shapes and split them into random waves of 3, 3, and 2
+      const shuffled = shuffleArray(ALL_SHAPES);
+      waves = [
+        shuffled.slice(0, 3),
+        shuffled.slice(3, 6),
+        shuffled.slice(6, 8)
+      ];
 
       filledCountEl.textContent = "0";
       floatingHb.classList.remove("show");
@@ -536,7 +546,7 @@
     function loadWave(waveIdx) {
       trayEl.innerHTML = "";
       placedInWave = 0;
-      const shapes = WAVES[waveIdx];
+      const shapes = waves[waveIdx];
       if (!shapes) return;
 
       shapes.forEach((shape) => {
@@ -566,7 +576,7 @@
       if (isFinished) return;
       document.querySelectorAll(".hint-glow").forEach(c => c.classList.remove("hint-glow"));
 
-      const shapes = WAVES[currentWaveIndex];
+      const shapes = waves[currentWaveIndex];
       const nextShape = shapes.find(s => {
         const el = document.querySelector(`.piece[data-shape-id="${s.id}"]`);
         return el && el.dataset.used !== "true";
@@ -723,126 +733,4 @@
 
         if (totalFilled >= 42) {
           triggerAllClearCelebration();
-        } else if (placedInWave === WAVES[currentWaveIndex].length) {
-          currentWaveIndex++;
-          setTimeout(() => loadWave(currentWaveIndex), 200);
-        }
-      } else {
-        activePieceEl.classList.remove("dragging-source");
-      }
-
-      activeShape = null;
-      activePieceEl = null;
-    }
-
-    function triggerAllClearCelebration() {
-      isFinished = true;
-      hintText.textContent = "ALL CLEAR!! ✨";
-
-      setTimeout(() => {
-        document.querySelectorAll(".cell").forEach((cell, idx) => {
-          setTimeout(() => {
-            cell.classList.add("clearing");
-            cell.className = "cell clearing";
-          }, Math.floor(idx / COLS) * 40);
-        });
-      }, 250);
-
-      setTimeout(() => {
-        floatingHb.classList.add("show");
-      }, 650);
-
-      setTimeout(() => {
-        startFireworks();
-      }, 1350);
-
-      setTimeout(() => {
-        floatingHb.classList.remove("show");
-        finalModal.classList.add("active");
-      }, 3400);
-    }
-
-    // ==========================================
-    // 🎆 FIREWORKS ANIMATION ENGINE
-    // ==========================================
-    const fwCanvas = document.getElementById("fireworksCanvas");
-    const fwCtx = fwCanvas.getContext("2d");
-    let particles = [];
-    let fireworksActive = false;
-    let fwInterval;
-
-    function resizeCanvas() {
-      fwCanvas.width = window.innerWidth;
-      fwCanvas.height = window.innerHeight;
-    }
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
-
-    function createBurst(x, y) {
-      const colors = ["#38bdf8", "#fde047", "#ffffff", "#60a5fa", "#f472b6", "#34d399"];
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      for (let i = 0; i < 55; i++) {
-        const angle = (Math.PI * 2 * i) / 55;
-        const speed = Math.random() * 5 + 2;
-        particles.push({
-          x,
-          y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          alpha: 1,
-          color
-        });
-      }
-    }
-
-    function animateFireworks() {
-      if (!fireworksActive && particles.length === 0) return;
-      fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
-
-      particles.forEach((p, index) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.06;
-        p.alpha -= 0.016;
-
-        if (p.alpha <= 0) {
-          particles.splice(index, 1);
-        } else {
-          fwCtx.save();
-          fwCtx.globalAlpha = p.alpha;
-          fwCtx.fillStyle = p.color;
-          fwCtx.beginPath();
-          fwCtx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
-          fwCtx.fill();
-          fwCtx.restore();
-        }
-      });
-
-      requestAnimationFrame(animateFireworks);
-    }
-
-    function startFireworks() {
-      fireworksActive = true;
-      createBurst(fwCanvas.width * 0.3, fwCanvas.height * 0.35);
-      createBurst(fwCanvas.width * 0.7, fwCanvas.height * 0.35);
-      animateFireworks();
-
-      fwInterval = setInterval(() => {
-        if (!fireworksActive) return;
-        const rx = Math.random() * (fwCanvas.width * 0.7) + fwCanvas.width * 0.15;
-        const ry = Math.random() * (fwCanvas.height * 0.45) + fwCanvas.height * 0.12;
-        createBurst(rx, ry);
-      }, 650);
-    }
-
-    function stopFireworks() {
-      fireworksActive = false;
-      clearInterval(fwInterval);
-      particles = [];
-      fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
-    }
-
-    initGame();
-  </script>
-</body>
-</html>
+        } else if
